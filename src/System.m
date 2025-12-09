@@ -63,6 +63,14 @@ classdef System < handle
                 System.SAMPLING_INTERVAL, System.START);
         end
 
+        function updateStream(this)
+            in = this.input;
+            this.rebuildTimeVec();
+            this.State = SystemState.INPUT_READ;
+            this.currentVals = DiscPulse(this.t_vec, in.stream, ...
+                System.SAMPLING_INTERVAL, System.START);
+        end
+
         function shapeInput(this)
             this.State = SystemState.PULSE_SHAPED;
             out = this.inputFilter.passThrough(this.currentVals);

@@ -53,6 +53,13 @@ classdef Input < handle
             this.mode = InputMode.TEXT_BINARY;
         end
 
+        function generateRandomBin(this, len)
+            this.switchToBinary();
+            this.stream = randi([0 1], 1, len);
+            this.updateSize();
+            fprintf(1,"Generated a random string of bits of length: %d\n", len);
+        end
+
         % modulation vs source coding?
         % Implement BPSK and OOK
         % Is OOK even needed when dealing with binary data?

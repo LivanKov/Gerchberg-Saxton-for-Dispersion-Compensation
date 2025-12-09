@@ -131,10 +131,16 @@ classdef InputSec < handle
                 "Position",[5 28 100 22]);
             opt_2.Tag = 'file';
             opt_2.FontColor = [0.85 0.85 0.85];
+
+            opt_3 = uiradiobutton(bg, "Text", "Generate random stream", ...
+                "Position",[5 15 100 22]);
+            opt_3.Tag = 'random';
+            opt_3.FontColor = [0.85 0.85 0.85];
             
-            bg.Position(1:4) = [5 25 100 80];
+            bg.Position(1:4) = [5 25 100 200];
             opt_1.FontSize = 10;
             opt_2.FontSize = 10;
+            opt_3.FontSize = 10;
         
             this.mode_label = uilabel(input_mode_panel);
             this.mode_label.Text = " ";
@@ -181,8 +187,15 @@ classdef InputSec < handle
             if (~~isempty(text))
                 fprintf(2, "Error: Empty message string\n");
             else 
-                sys.ingest(text);
+                if input_txt_area.Placeholder == "Enter message"
+                    sys.ingest(text);
+                else 
+                    sys.input.generateRandomBin(str2double(text));
+                    sys.updateStream();
+                end
+                
                 bin_stream = sys.input.stream;
+
                 if ~isempty(bin_stream)
                     this.updateDataLabels();
                     this.refreshInputPlot();
@@ -225,11 +238,21 @@ classdef InputSec < handle
                input_txt_area.Enable = 'off';
                upload_txt_btn.Enable = 'off';
                upload_txt_switch.Enable = 'off';
-           else
+               input_txt_area.Placeholder = "Enter message";
+               upload_txt_btn.Text = "Upload Text";
+           elseif opt == "msg"
                upload_btn.Enable = 'off';
                input_txt_area.Enable = 'on';
                upload_txt_btn.Enable = 'on';
                upload_txt_switch.Enable = 'on';
+               input_txt_area.Placeholder = "Enter message";                              
+               upload_txt_btn.Text = "Upload Text";
+           elseif opt == "random"
+               input_txt_area.Placeholder = "Enter length";
+               upload_btn.Enable = 'off';
+               upload_txt_switch.Enable = 'off';
+               upload_txt_btn.Enable = 'on';
+               upload_txt_btn.Text = "Create";
            end
         end
 

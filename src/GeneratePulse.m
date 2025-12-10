@@ -6,14 +6,15 @@
 % TODO: FFT convolution
 % Current goal: minimize dependency on external toolboxes
 
-function pulse = GeneratePulse(input, shape)
+function mult_pulse = GeneratePulse(input, shape, multi)
 arguments
     input double
     shape PulseShape
+    multi double
 end
     switch shape 
         case PulseShape.RECT
-            pulse = RectPulse(input, 1, 0.5, "false");
+            pulse = RectPulse(input, 1, System.SAMPLING_INTERVAL/2, "false");
         case PulseShape.COS_SQR
             pulse = CosSqr(input, 1, 1, "false");
         case PulseShape.RCOS
@@ -27,5 +28,6 @@ end
         otherwise 
             pulse = RectPulse(input, 1, 0, 1, "false");
     end
+    mult_pulse = multi * pulse;
 end
 

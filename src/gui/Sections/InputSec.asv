@@ -25,7 +25,7 @@ classdef InputSec < handle
             
             x = -2:0.01:2;
             p_s = s.inputFilter.pulseShape;
-            y = GeneratePulse(x, p_s);
+            y = GeneratePulse(x, p_s, s.multiplier);
             t_pulse = uiaxes(g_i1);
             f_pulse = uiaxes(g_i1);
         
@@ -50,7 +50,17 @@ classdef InputSec < handle
             pulse_dd.FontSize = 10;
             pulse_dd.BackgroundColor = [0.2 0.2 0.23];
             pulse_dd.FontColor = [0.9 0.9 0.9];
-        
+
+            mult_label = uilabel(dd_panel);
+            mult_label.Text = "Multiplier";
+            mult_label.Position = [5 40 100 20];
+            mult_label.FontSize = 10;
+            mult_label.FontColor = [0.75 0.75 0.78];
+            mult_field = uieditfield(dd_panel, 'numeric', ...
+                'Position', [5 20 100 22], ...
+                'Value', 1.0);  
+
+
             t_pulse.Layout.Row = 1;
             t_pulse.Layout.Column = 2;
             ylim(t_pulse, [-1 2]);
@@ -133,14 +143,14 @@ classdef InputSec < handle
             opt_2.FontColor = [0.85 0.85 0.85];
 
             opt_3 = uiradiobutton(bg, "Text", "Generate random stream", ...
-                "Position",[5 5 100 22]);
+                "Position",[5 15 100 22]);
             opt_3.Tag = 'random';
             opt_3.FontColor = [0.85 0.85 0.85];
             
-            bg.Position(1:4) = [5 25 100 80];
+            bg.Position(1:4) = [5 25 100 200];
             opt_1.FontSize = 10;
             opt_2.FontSize = 10;
-            opt_3.FontSize 
+            opt_3.FontSize = 10;
         
             this.mode_label = uilabel(input_mode_panel);
             this.mode_label.Text = " ";
@@ -178,7 +188,7 @@ classdef InputSec < handle
             new_pulse = src.Value;
             sys.updatePulse(new_pulse);
             p_s = sys.inputFilter.pulseShape;
-            y = GeneratePulse(x, p_s);
+            y = GeneratePulse(x, p_s, sys.multiplier);
             plot(pulse_plot,x, y);
         end
 
@@ -187,8 +197,15 @@ classdef InputSec < handle
             if (~~isempty(text))
                 fprintf(2, "Error: Empty message string\n");
             else 
-                sys.ingest(text);
+                if input_txt_area.Placeholder == "Enter message"
+                    sys.ingest(text);
+                else 
+                    sys.input.generateRandomBin(str2double(text));
+                    sys.updateStream();
+                end
+                
                 bin_stream = sys.input.stream;
+
                 if ~isempty(bin_stream)
                     this.updateDataLabels();
                     this.refreshInputPlot();
@@ -231,11 +248,21 @@ classdef InputSec < handle
                input_txt_area.Enable = 'off';
                upload_txt_btn.Enable = 'off';
                upload_txt_switch.Enable = 'off';
+               input_txt_area.Placeholder = "Enter message";
+               upload_txt_btn.Text = "Upload Text";
            elseif opt == "msg"
                upload_btn.Enable = 'off';
                input_txt_area.Enable = 'on';
                upload_txt_btn.Enable = 'on';
                upload_txt_switch.Enable = 'on';
+               input_txt_area.Placeholder = "Enter message";                              
+               upload_txt_btn.Text = "Upload Text";
+           elseif opt == "random"
+               input_txt_area.Placeholder = "Enter length";
+               upload_btn.Enable = 'off';
+               upload_txt_switch.Enable = 'off';
+               upload_txt_btn.Enable = 'on';
+               upload_txt_btn.Text = "Create";
            end
         end
 

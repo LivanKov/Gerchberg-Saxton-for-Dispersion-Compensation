@@ -12,7 +12,7 @@ arguments
     width (1,1) double = 1
     toPlot string = 'false'
 end
-    samp_rate = (abs(x(1)) + abs(x(length(x))))/(length(x) - 1);
+    samp_rate = System.SYMBOL_PRECISION;
     x_vals = -width/2:samp_rate:width/2;
     y = (abs(x) <= x_vals(end)) * a;
 

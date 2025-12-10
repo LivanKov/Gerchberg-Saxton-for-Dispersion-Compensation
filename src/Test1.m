@@ -119,24 +119,6 @@ plot(t_new_alpha, abs(x_new_alpha));
 title("Filtered Time Domain (Reconstructed via IFFT)");
 xlabel('Time (t)'); ylabel('x(t)');
 grid on;
-%{
-figure;
-plot(f, custom_filt);
-title('Custom Filter');
-xlim([-20 20]);
-
-figure;
-plot(f, square_filter);
-title('Square Filter');
-xlim([-20 20]);
-
-figure;
-plot(f, square_filter_2);
-title('Square Filter 2');
-xlim([-20 20]);
-figure;
-s.plot();
-%}
 res = sampleOutput(t_new_alpha, x_new_alpha);
 
 

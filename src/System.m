@@ -24,12 +24,17 @@ classdef System < handle
         t_vec
         f_vec
         spectrum
+        oversampling_ratio
+        freq
+        multiplier
     end
 
     properties(Constant)
         SYMBOL_PRECISION = 0.01 % vector granularity / Precision
         SAMPLING_INTERVAL = 1.0; % length of a single pulse
         START = 0; % Time vector start
+        SAMP_TIME = 100;
+        FS = 100;
     end
 
     methods
@@ -45,12 +50,13 @@ classdef System < handle
             sysObj.inputFilter = i_f;
             o_f = OutputFilter;
             sysObj.outputFilter = o_f;
+            sysObj.multiplier = 1;
         end
 
         function updatePulse(this, pulse)
             i_f = this.inputFilter;
             i_f.pulseShape = pulse;
-            this.currentVals = DiscPulse(this.t_vec, this.input.stream, ...
+            this.currentVals = this.multiplier * DiscPulse(this.t_vec, this.input.stream, ...
                 System.SAMPLING_INTERVAL, System.START);
         end
 
@@ -59,7 +65,7 @@ classdef System < handle
             in.readInput(stream);
             this.rebuildTimeVec();
             this.State = SystemState.INPUT_READ;
-            this.currentVals = DiscPulse(this.t_vec, in.stream, ...
+            this.currentVals = this.multiplier * DiscPulse(this.t_vec, in.stream, ...
                 System.SAMPLING_INTERVAL, System.START);
         end
 
@@ -67,13 +73,13 @@ classdef System < handle
             in = this.input;
             this.rebuildTimeVec();
             this.State = SystemState.INPUT_READ;
-            this.currentVals = DiscPulse(this.t_vec, in.stream, ...
+            this.currentVals = this.multiplier * DiscPulse(this.t_vec, in.stream, ...
                 System.SAMPLING_INTERVAL, System.START);
         end
 
         function shapeInput(this)
             this.State = SystemState.PULSE_SHAPED;
-            out = this.inputFilter.passThrough(this.currentVals);
+            out = this.inputFilter.passThrough(this.currentVals, this.multiplier);
             this.currentVals = out;
             this.buildSpectrum();
         end
@@ -111,6 +117,7 @@ classdef System < handle
             plot(this.t_vec, this.currentVals, 'Color', color, 'LineWidth', 1.5);
             ylim([min(this.currentVals) * 2 max(this.currentVals)*2]);
             GlobalPlotSettings();
+            xlim([System.START (length(this.input.stream) - 1) * System.SAMPLING_INTERVAL]);
         end
 
         function plotFT(this, color)
@@ -143,7 +150,7 @@ classdef System < handle
         function rebuildTimeVec(this)
             stream = this.input.stream;
             len = System.SAMPLING_INTERVAL * length(stream);
-            this.t_vec = System.START:System.SYMBOL_PRECISION:len;
+            this.t_vec = -(System.SAMP_TIME/2 + len - 1):System.SYMBOL_PRECISION:(System.SAMP_TIME/2 + len - 1);
         end
     end
 end

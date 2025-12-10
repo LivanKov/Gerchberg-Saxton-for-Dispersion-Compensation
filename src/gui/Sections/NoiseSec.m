@@ -15,7 +15,7 @@ classdef NoiseSec < handle
             
             x_noisy = -5:0.01:5;
             pulse_shape = s.inputFilter.pulseShape;
-            y_noisy = GeneratePulse(x_noisy, pulse_shape);
+            y_noisy = GeneratePulse(x_noisy, pulse_shape,s.multiplier);
             
             n_ii = uigridlayout(n_i, [5 1]);
             n_ii.Layout.Row = 1;

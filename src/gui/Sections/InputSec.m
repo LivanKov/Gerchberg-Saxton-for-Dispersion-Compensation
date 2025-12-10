@@ -25,7 +25,7 @@ classdef InputSec < handle
             
             x = -2:0.01:2;
             p_s = s.inputFilter.pulseShape;
-            y = GeneratePulse(x, p_s);
+            y = GeneratePulse(x, p_s, s.multiplier);
             t_pulse = uiaxes(g_i1);
             f_pulse = uiaxes(g_i1);
         
@@ -50,7 +50,18 @@ classdef InputSec < handle
             pulse_dd.FontSize = 10;
             pulse_dd.BackgroundColor = [0.2 0.2 0.23];
             pulse_dd.FontColor = [0.9 0.9 0.9];
-        
+
+            mult_label = uilabel(dd_panel);
+            mult_label.Text = "Multiplier";
+            mult_label.Position = [5 40 100 20];
+            mult_label.FontSize = 10;
+            mult_label.FontColor = [0.75 0.75 0.78];
+            uieditfield(dd_panel, 'numeric', ...
+                'Position', [5 20 100 22], ...
+                'Value', 1.0, ...
+                'ValueChangedFcn', @(src,event) this.changeMultiplier(src, event));  
+
+
             t_pulse.Layout.Row = 1;
             t_pulse.Layout.Column = 2;
             ylim(t_pulse, [-1 2]);
@@ -76,7 +87,7 @@ classdef InputSec < handle
             g_i2.Layout.Column = 1;
             g_i2.Layout.Row = 2;
             g_i2.BackgroundColor = [0.15 0.15 0.18];
-            g_i2.Padding(1) = [30];
+            g_i2.Padding(1) = 30;
         
         
             input_panel = uipanel(g_i2);
@@ -178,7 +189,7 @@ classdef InputSec < handle
             new_pulse = src.Value;
             sys.updatePulse(new_pulse);
             p_s = sys.inputFilter.pulseShape;
-            y = GeneratePulse(x, p_s);
+            y = GeneratePulse(x, p_s, sys.multiplier);
             plot(pulse_plot,x, y);
         end
 
@@ -197,7 +208,7 @@ classdef InputSec < handle
                 bin_stream = sys.input.stream;
 
                 if ~isempty(bin_stream)
-                    this.updateDataLabels();
+                    % this.updateDataLabels();
                     this.refreshInputPlot();
                     plot(this.input_analysis_graph, sys.t_vec, sys.currentVals);
                     disp(this.input_analysis_graph.XLim);
@@ -263,6 +274,11 @@ classdef InputSec < handle
 
         function refreshInputPlot(this)
             cla(this.input_analysis_graph);
+        end
+
+        function changeMultiplier(this, src , ~)
+            this.system.multiplier = src.Value;
+            disp(this.system.multiplier);
         end
     end
 end

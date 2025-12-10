@@ -49,14 +49,15 @@ classdef NoiseSec < handle
             noisy_pulse.MinorGridColor = [0.25 0.25 0.28];
             
             plot(noisy_pulse,x_noisy,out_y);
-            ylim(noisy_pulse, [min(out_y) * 2 - 1 max(out_y) * 2]);
+            ylim(noisy_pulse, [min(out_y) * 2 - 1  max(out_y) * 2]);
         end
         
         function updateSlider(this, ~, event, noisy_pulse, x)
             p_s = this.system.inputFilter.pulseShape;
-            y = GeneratePulse(x, p_s);
+            y = GeneratePulse(x, p_s, this.system.multiplier);
             new_out_y = ApplyNoise(y, event.Value);
             plot(noisy_pulse, x, new_out_y);
+            noisy_pulse.YLim = [min(new_out_y) * 2 - 1 max(new_out_y) * 2];
         end
     end
 end

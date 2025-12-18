@@ -1,6 +1,6 @@
 clc; clear; close all;
 
-L = 150;         
+L = 50;         
 D = 17;            
 lambda = 1000e-9;    
 c = 3e8;     
@@ -11,9 +11,9 @@ T0 = 5 * 10e-12;
 fs = 1000e9;   
 dt = 1/fs;
 t = -200e-12 : dt : 200e-12;
-sig = Gaus(t/T0);
+sig = CosSqr(t/T0) + CosSqr((t-T0)/T0);
 
-N = length(t);
+N = length(sig);
 U0 = fftshift(fft(sig));
 % conver to radian/angular freq
 f = (-((N-1)/2):(N/2)) * fs/N * 2*pi;

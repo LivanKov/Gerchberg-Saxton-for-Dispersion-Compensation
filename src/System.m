@@ -35,6 +35,9 @@ classdef System < handle
         START = 0; % Time vector start
         SAMP_TIME = 100;
         FS = 100;
+        CHAN_LEN = 50;
+        LIGHT = 3e8;    
+        LAMBDA = 1000e-9;    
     end
 
     methods
@@ -150,7 +153,7 @@ classdef System < handle
         function rebuildTimeVec(this)
             stream = this.input.stream;
             len = System.SAMPLING_INTERVAL * length(stream);
-            this.t_vec = -(System.SAMP_TIME/2 + len - 1):System.SYMBOL_PRECISION:(System.SAMP_TIME/2 + len - 1);
+            this.t_vec = -(System.SAMP_TIME/2 + len - 1):1/System.FS:(System.SAMP_TIME/2 + len - 1);
         end
     end
 end

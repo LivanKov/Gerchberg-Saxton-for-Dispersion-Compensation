@@ -12,9 +12,7 @@ arguments
     width (1,1) double = 1
     toPlot string = 'false'
 end
-    samp_rate = System.SYMBOL_PRECISION;
-    x_vals = -width/2:samp_rate:width/2;
-    y = (abs(x) <= x_vals(end)) * a;
+    y = (abs(x) <= width/2) * a;
 
     if toPlot == 't' | toPlot == "true"
         plot(x, y, 'Color', 'y', 'LineWidth', 1.5);

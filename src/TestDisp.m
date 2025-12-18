@@ -1,17 +1,17 @@
 clc; clear; close all;
 
-L = 50;         
+L = 20;         
 D = 17;            
-lambda = 1000e-9;    
+lambda = 1550e-9;    
 c = 3e8;     
 
 beta2 = -(lambda^2 / (2*pi*c)) * (D * 1e-3);
 
-T0 = 5 * 10e-12; 
+T0 = 10e-12; 
 fs = 1000e9;   
 dt = 1/fs;
 t = -200e-12 : dt : 200e-12;
-sig = CosSqr(t/T0) + CosSqr((t-T0)/T0);
+sig = RectPulse(t,1, T0) + RectPulse(t-2*T0,1, T0);
 
 N = length(sig);
 U0 = fftshift(fft(sig));

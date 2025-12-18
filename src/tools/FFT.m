@@ -16,9 +16,9 @@ function [f, s] = FFT(x, toPlot)
     Y_shifted = fftshift(Y);
     
     N = length(x);
-    fs = 1/System.SYMBOL_PRECISION;
+    fs = System.FS;
     f = (-N/2:N/2-1) * (fs/N);
-    s = Y_shifted * System.SYMBOL_PRECISION;
+    s = Y_shifted;
     
     if toPlot == 't' | toPlot == "true"
         plot(f, abs(s), 'Color', 'y', 'LineWidth', 1.5);

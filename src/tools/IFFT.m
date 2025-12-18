@@ -8,10 +8,10 @@ function [t, x] = IFFT(s, toPlot)
         toPlot string = "false"
     end
 
-    X_1 = ifftshift(s/System.SYMBOL_PRECISION);
+    X_1 = ifftshift(s);
     x = ifft(X_1);
 
-    t = (0:length(x)- 1) * System.SYMBOL_PRECISION;
+    t = (0:length(x)- 1);
 
     if toPlot == 't' || toPlot == "true"
         plot(t, x, 'Color', 'y', 'LineWidth', 1.5);

@@ -17,6 +17,7 @@ classdef System < handle
     properties
         inputFilter InputFilter
         outputFilter OutputFilter
+        chromaticDispersion CD
         input
         Output
         State SystemState
@@ -146,6 +147,10 @@ classdef System < handle
             nums = this.currentVals(ids);
             rounded = nums > 0.5;
             out = num2str(rounded);
+        end
+
+        function addCD(this)
+            this.currentVals = this.chromaticDispersion.input();
         end
     end
 

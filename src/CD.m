@@ -18,7 +18,7 @@ classdef CD < handle
             if nargin > 0
                 cd_obj.disp_coeff = disp_coeff;
             end
-            
+
             cd_obj.gvd = -(System.LAMBDA^2 / (2*pi*System.LIGHT)) * (cd_obj.disp_coeff * 1e-3);
             
             %{
@@ -30,6 +30,10 @@ classdef CD < handle
         end
 
         function out = input(this, sig)
+
+            fs = 1000e9;   
+            dt = 1/fs;
+            t = -200e-12 : dt : 200e-12;
 
             N = length(t);
             U0 = fftshift(fft(sig));

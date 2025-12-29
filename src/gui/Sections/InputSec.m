@@ -113,14 +113,6 @@ classdef InputSec < handle
             upload_txt_switch.Position(1:2) = [230 60];
             upload_txt_switch.ValueChangedFcn = @(src, event) this.updateTextInputMode( ...
                 src, event, s);
-        
-            upload_btn = uibutton(input_panel, ...
-                "Text", "Upload File", ...
-                "ButtonPushedFcn", @(src, event)this.openFileUpload(src, event, s));
-            upload_btn.Enable = 'off';
-            upload_btn.Position(1:4) = [200 30 80 20];
-            upload_btn.BackgroundColor = [0.25 0.35 0.5];
-            upload_btn.FontColor = [0.95 0.95 0.95];
             
             input_mode_panel = uipanel(g_i2);
             input_mode_panel.Layout.Row = 1;
@@ -137,11 +129,6 @@ classdef InputSec < handle
                 "Position",[5 50 100 22]);
             opt_1.Tag = 'msg';
             opt_1.FontColor = [0.85 0.85 0.85];
-            
-            opt_2 = uiradiobutton(bg,"Text","Upload file", ...
-                "Position",[5 28 100 22]);
-            opt_2.Tag = 'file';
-            opt_2.FontColor = [0.85 0.85 0.85];
 
             opt_3 = uiradiobutton(bg, "Text", "Generate random stream", ...
                 "Position",[5 15 100 22]);
@@ -150,7 +137,6 @@ classdef InputSec < handle
             
             bg.Position(1:4) = [5 25 100 200];
             opt_1.FontSize = 10;
-            opt_2.FontSize = 10;
             opt_3.FontSize = 10;
         
             this.mode_label = uilabel(input_mode_panel);
@@ -229,16 +215,6 @@ classdef InputSec < handle
                 case "Binary"
                     sys.input.switchToBinary();
             end
-        end
-
-        function openFileUpload(~, ~, ~, sys)
-            [file, path] = uigetfile('*.*', 'Select a File');
-            if isequal(file,0)
-                return;
-            end
-        
-            fullpath = fullfile(path, file);
-            sys.input.updateFileContents(fullpath);
         end
 
         function uploadSelectionChange(~, ~, event, upload_btn, ...

@@ -21,12 +21,6 @@ classdef CD < handle
 
             cd_obj.gvd = -(System.LAMBDA^2 / (2*pi*System.LIGHT)) * (cd_obj.disp_coeff * 1e-3);
             
-            %{
-            T0 = 5 * 10e-12; 
-            fs = 1000e9;   
-            dt = 1/fs;
-            t = -200e-12 : dt : 200e-12;
-            %}
         end
 
         function out = input(this, sig)

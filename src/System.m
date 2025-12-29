@@ -32,7 +32,7 @@ classdef System < handle
         SYMBOL_PRECISION = 0.01 % vector granularity / Precision
         SAMPLING_INTERVAL = 10e-12; % length of a single pulse
         SAMP_TIME = 200e-12;
-        FS = 1000e9;
+        FS = 3000e9;
         CHAN_LEN = 50;
         LIGHT = 3e8;    
         LAMBDA = 1550e-9; % Carrier wavelength, default value for an optical comms system  

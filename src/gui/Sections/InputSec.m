@@ -216,7 +216,7 @@ classdef InputSec < handle
                     hold(this.input_analysis_graph, 'on');
                     plot(this.input_analysis_graph, sys.t_vec, sys.currentVals);
                     this.input_analysis_graph.YLim = [min(sys.currentVals)*2 max(sys.currentVals)*2];
-                    this.input_analysis_graph.XLim = [System.START System.SAMPLING_INTERVAL * (length(bin_stream) - 1)];
+                    this.input_analysis_graph.XLim = [0 System.SAMPLING_INTERVAL * (length(bin_stream) - 1)];
                 end
             end
         end

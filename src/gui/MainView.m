@@ -19,6 +19,7 @@ classdef MainView < handle
             in_sec = uitab(tabs,'Title','Input');
             n_sec = uitab(tabs,'Title','Noise');
             rec_sec = uitab(tabs,'Title','Receiver');
+            settings = uitab(tabs, 'Title', 'Settings');
             uitab(tabs,'Title','Output');
             uitab(tabs, 'Title', 'Statistic');
             
@@ -31,6 +32,8 @@ classdef MainView < handle
             % Receiver section
             RecSec(rec_sec, s);
             
+            % Settings section
+            Settings(settings, s);
 
             % Output section
         end

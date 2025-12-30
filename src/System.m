@@ -56,34 +56,33 @@ classdef System < handle
         function updatePulse(this, pulse)
             i_f = this.inputFilter;
             i_f.pulseShape = pulse;
-            this.currentVals = this.multiplier * DiscPulse(this.t_vec, this.input.stream, ...
-                System.SAMPLING_INTERVAL, 0);
+            this.currentVals = this.multiplier * Dirac(this.t_vec, this.input.stream, ...
+                System.SAMPLING_INTERVAL);
         end
 
         function ingest(this, stream)
             in = this.input;
             in.readInput(stream);
             this.rebuildTimeVec();
-            this.currentVals = this.multiplier * DiscPulse(this.t_vec, in.stream, ...
-                System.SAMPLING_INTERVAL, 0);
+            this.currentVals = this.multiplier * Dirac(this.t_vec, in.stream, ...
+                System.SAMPLING_INTERVAL);
         end
 
         function updateStream(this)
             in = this.input;
             this.rebuildTimeVec();
-            this.currentVals = this.multiplier * DiscPulse(this.t_vec, in.stream, ...
-                System.SAMPLING_INTERVAL, 0);
+            this.currentVals = this.multiplier * Dirac(this.t_vec, in.stream, ...
+                System.SAMPLING_INTERVAL);
         end
 
         function shapeInput(this)
             out = this.inputFilter.passThrough(this.currentVals, this.multiplier);
             this.currentVals = out;
-            this.buildSpectrum();
+            %this.buildSpectrum();
         end
 
-        function sqr_filter =  applyOutputFilter(this)
-            sqr_filter = this.outputFilter.construct(this.f_vec, this.spectrum);
-            
+        function applyOutputFilter(this)
+            this.outputFilter.construct(this.f_vec, this.spectrum);
             filtered_spec = sqr_filter .* this.spectrum;
             [~, x] = IFFT(filtered_spec);
             this.currentVals = abs(x);
@@ -100,36 +99,12 @@ classdef System < handle
             this.currentVals = noisy_vals;
         end
 
-        function plot(this, color)
-            if nargin == 1
-                color = 'y';
-            end
-
+        function plot(this)
             if isempty(this.t_vec) || isempty(this.currentVals)
                 return
             end
             figure;
-            plot(this.t_vec, this.currentVals, 'Color', color, 'LineWidth', 1.5);
-            ylim([min(this.currentVals) * 2 max(this.currentVals)*2]);
-            GlobalPlotSettings();
-            xlim([0 (length(this.input.stream) - 1) * System.SAMPLING_INTERVAL]);
-        end
-
-        function plotFT(this, color)
-            if nargin == 1
-                color = 'y';
-            end
-
-            if isempty(this.t_vec) || isempty(this.currentVals)
-                return
-            end
-            figure;
-            [f, spec] = FFT(this.currentVals);
-            plot(f, abs(spec), 'Color', color, 'LineWidth', 1.5);
-            ylim([min(this.currentVals) * 2 max(this.currentVals)*2]);
-            xlim([-20 20]);
-            GlobalPlotSettings();
-        
+            plot(this.t_vec, this.currentVals);
         end
 
         function out = sampleOutput(this)
@@ -143,13 +118,10 @@ classdef System < handle
         function addCD(this)
             this.currentVals = this.chromaticDispersion.input();
         end
-    end
 
-    methods(Access = private)
         function rebuildTimeVec(this)
-            stream = this.input.stream;
-            len = System.SAMPLING_INTERVAL * length(stream);
-            this.t_vec = -(System.SAMP_TIME/2 + len - 1):1/System.FS:(System.SAMP_TIME/2 + len - 1);
+            dt = 1/System.FS;
+            this.t_vec = -System.SAMP_TIME:dt:System.SAMP_TIME;
         end
     end
 end

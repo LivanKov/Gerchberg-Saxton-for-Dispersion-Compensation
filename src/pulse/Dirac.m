@@ -3,16 +3,15 @@
 % No external dependencies i.e the symbolic math toolbox
 % Plots a graph based on the arguments passed, that doesn not interfere
 % with the return variables
-function y = DiscPulse(x, a, rate, start, toPlot)
+function y = Dirac(x, a, rate, toPlot)
 arguments
     x double
     a double
     rate (1,1) double = 1
-    start (1,1) double = 0;
     toPlot string = 'false'
 end
     y = zeros(1, length(x));
-    x_vals = start:rate:rate*length(a);
+    x_vals = 0:rate:rate*length(a);
     x_vals_it = 1;
     a_vals_it = 1;
     for i = 1:length(x)

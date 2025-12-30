@@ -48,11 +48,10 @@ classdef InputSec < handle
 
             mult_label = uilabel(dd_panel);
             mult_label.Text = "Multiplier";
-            mult_label.Position = [5 40 100 20];
+            mult_label.Position = [5 70 100 20];
             mult_label.FontSize = 10;
-            mult_label.FontColor = [0.75 0.75 0.78];
             uieditfield(dd_panel, 'numeric', ...
-                'Position', [5 20 100 22], ...
+                'Position', [5 50 100 22], ...
                 'Value', 1.0, ...
                 'ValueChangedFcn', @(src,event) this.changeMultiplier(src, event));  
 
@@ -91,7 +90,7 @@ classdef InputSec < handle
             input_mode_panel.Layout.Column = 1;
         
             bg = uibuttongroup(input_mode_panel, "SelectionChangedFcn", @(bg, event) this.uploadSelectionChange(bg, event, ...
-                upload_btn, input_txt_area, upload_txt_btn, upload_txt_switch));
+               input_txt_area, upload_txt_btn));
             bg.BorderType = 'none';
             
             opt_1 = uiradiobutton(bg,"Text","Enter message", ...
@@ -166,33 +165,27 @@ classdef InputSec < handle
                     sys.shapeInput();
                     hold(this.input_analysis_graph, 'on');
                     plot(this.input_analysis_graph, sys.t_vec, sys.currentVals);
-                    this.input_analysis_graph.YLim = [min(sys.currentVals)*2 max(sys.currentVals)*2];
-                    this.input_analysis_graph.XLim = [0 System.SAMPLING_INTERVAL * (length(bin_stream) - 1)];
+                    %this.input_analysis_graph.YLim = [min(sys.currentVals)*2 max(sys.currentVals)*2];
+                    %this.input_analysis_graph.XLim = [0 System.SAMPLING_INTERVAL * (length(bin_stream) - 1)];
                 end
             end
         end
 
-        function uploadSelectionChange(~, ~, event, upload_btn, ...
-            input_txt_area, upload_txt_btn, upload_txt_switch)
+        function uploadSelectionChange(~, ~, event, ...
+            input_txt_area, upload_txt_btn)
            opt = event.NewValue.Tag;
            if opt == "file"
-               upload_btn.Enable = 'on';
                input_txt_area.Enable = 'off';
                upload_txt_btn.Enable = 'off';
-               upload_txt_switch.Enable = 'off';
                input_txt_area.Placeholder = "Enter message";
                upload_txt_btn.Text = "Upload Text";
            elseif opt == "msg"
-               upload_btn.Enable = 'off';
                input_txt_area.Enable = 'on';
                upload_txt_btn.Enable = 'on';
-               upload_txt_switch.Enable = 'on';
                input_txt_area.Placeholder = "Enter message";                              
                upload_txt_btn.Text = "Upload Text";
            elseif opt == "random"
                input_txt_area.Placeholder = "Enter length";
-               upload_btn.Enable = 'off';
-               upload_txt_switch.Enable = 'off';
                upload_txt_btn.Enable = 'on';
                upload_txt_btn.Text = "Create";
            end

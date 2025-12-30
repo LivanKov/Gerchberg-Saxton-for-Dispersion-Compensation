@@ -10,8 +10,6 @@ classdef NoiseSec < handle
             this.system = s;
             
             n_i = uigridlayout(panel, [2 2]);
-            n_i.BackgroundColor = [0.12 0.12 0.15];
-            
             
             x_noisy = -5:0.01:5;
             pulse_shape = s.inputFilter.pulseShape;
@@ -20,7 +18,6 @@ classdef NoiseSec < handle
             n_ii = uigridlayout(n_i, [5 1]);
             n_ii.Layout.Row = 1;
             n_ii.Layout.Column = 1;
-            n_ii.BackgroundColor = [0.15 0.15 0.18];
             
             out_y = ApplyNoise(y_noisy, 0);
             
@@ -30,7 +27,6 @@ classdef NoiseSec < handle
             mode_dd.Items = {'Additive White Noise'};
             mode_dd.Layout.Row = 1;
             mode_dd.Layout.Column = 1;
-            mode_dd.BackgroundColor = [0.2 0.2 0.23];
             mode_dd.FontColor = [0.9 0.9 0.9];
             
             noise_sld = uislider(n_ii, "ValueChangedFcn",@(src,event) this.updateSlider(src,event, noisy_pulse, x_noisy));

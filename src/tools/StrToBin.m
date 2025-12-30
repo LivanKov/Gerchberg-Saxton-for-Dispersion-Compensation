@@ -2,7 +2,7 @@
 % - '...' char vector, use strcmp
 % - "..." string
 
-function y = StrToBin(input, mode)
+function y = StrToBin(input)
    if (~isa(input, 'string') & ~isa(input, 'char'))
         fprintf(2, "Error: StrToBin only accepts char and string types as input\n");
         y = [];
@@ -15,19 +15,12 @@ function y = StrToBin(input, mode)
 
    check = input ~= '0' & input ~= '1';
 
-   if mode == InputMode.TEXT_BINARY && any(check)
+   if any(check)
         fprintf(2, "Error: Binary mode only accepts 1's and 0's");
         y = [];
         return;
    end
 
-   if mode == InputMode.TEXT_BINARY
-        y = input - '0';
-        return;
-   end
-
-   codes = uint8(input);
-   codes = dec2bin(codes, 8);
-   bits = codes' - '0';
-   y = bits(:)';
+   y = input - '0';
+   return;
 end

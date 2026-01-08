@@ -24,7 +24,7 @@ classdef InputSec < handle
             
             x = -System.SAMPLING_INTERVAL:1/System.FS:System.SAMPLING_INTERVAL;
             p_s = s.inputFilter.pulseShape;
-            y = GeneratePulse(x, p_s, s.multiplier);
+            y = Pulse.GeneratePulse(x, p_s, s.multiplier);
             this.pulse_plot = uiaxes(g_i1);
             f_pulse = uiaxes(g_i1);
         
@@ -125,14 +125,14 @@ classdef InputSec < handle
         end
 
         function names_str = getPulseShapes(~)
-           names = enumeration(PulseShape.RECT);
+           names = enumeration(Pulse.RECT);
            names_str = string(names);
         end
 
         function redrawPulse(this)
             p_s = this.system.inputFilter.pulseShape;
             x = -System.SAMPLING_INTERVAL:1/System.FS:System.SAMPLING_INTERVAL;
-            y = GeneratePulse(x, p_s, this.system.multiplier);
+            y = Pulse.GeneratePulse(x, p_s, this.system.multiplier);
             plot(this.pulse_plot,x, y);
             this.pulse_plot.YLim = [2*min(y) 2*max(y)];
         end

@@ -1,19 +1,10 @@
 s = System;
-
-s.input.switchToBinary();
-
 s.input.generateRandomBin(15);
-
 s.updateStream();
-
 s.plot();
-
 s.shapeInput();
-
 s.plot();
-
 s.addNoise(1);
-
 s.plot();
 
 %{

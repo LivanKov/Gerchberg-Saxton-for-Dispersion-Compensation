@@ -14,7 +14,7 @@ classdef NoiseSec < handle
             dt = 1/System.FS;
             x_noisy = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
             pulse_shape = s.inputFilter.pulseShape;
-            y_noisy = GeneratePulse(x_noisy, pulse_shape,s.multiplier);
+            y_noisy = Pulse.GeneratePulse(x_noisy, pulse_shape,s.multiplier);
             
             n_ii = uigridlayout(n_i, [5 1]);
             n_ii.Layout.Row = 1;
@@ -46,7 +46,7 @@ classdef NoiseSec < handle
         
         function updateSlider(this, ~, event, noisy_pulse, x)
             p_s = this.system.inputFilter.pulseShape;
-            y = GeneratePulse(x, p_s, this.system.multiplier);
+            y = Pulse.GeneratePulse(x, p_s, this.system.multiplier);
             noise = randn(1, length(y)) * sqrt(event.Value);
             plot(noisy_pulse, x, y + noise);
             % Update the y-axis limits based on the new noisy output

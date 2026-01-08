@@ -1,4 +1,3 @@
-
 delta = 1/256;
 Maxiter = 1000;
 t = -0.5:delta:5-delta;

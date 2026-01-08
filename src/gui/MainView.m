@@ -9,6 +9,7 @@
 classdef MainView < handle
     methods
         function this = MainView()
+            clc;close all; 
             s = System;
             f = uifigure('Name','ComViewUI');
             f.Position(3:4) = [600 600];

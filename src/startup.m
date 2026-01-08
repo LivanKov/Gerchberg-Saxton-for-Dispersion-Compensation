@@ -1,5 +1,4 @@
 %addpath("src");
 addpath("gui");
-addpath("pulse");
-addpath("tools");
+addpath("tests");
 addpath("gui/Sections");

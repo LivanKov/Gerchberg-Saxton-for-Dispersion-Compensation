@@ -56,7 +56,7 @@ classdef System < handle
         function updatePulse(this, pulse)
             i_f = this.inputFilter;
             i_f.pulseShape = pulse;
-            this.currentVals = this.multiplier * Dirac(this.t_vec, this.input.stream, ...
+            this.currentVals = this.multiplier * Pulse.Dirac(this.t_vec, this.input.stream, ...
                 System.SAMPLING_INTERVAL);
         end
 
@@ -64,34 +64,27 @@ classdef System < handle
             in = this.input;
             in.readInput(stream);
             this.rebuildTimeVec();
-            this.currentVals = this.multiplier * Dirac(this.t_vec, in.stream, ...
+            this.currentVals = this.multiplier * Pulse.Dirac(this.t_vec, in.stream, ...
                 System.SAMPLING_INTERVAL);
         end
 
         function updateStream(this)
             in = this.input;
             this.rebuildTimeVec();
-            this.currentVals = this.multiplier * Dirac(this.t_vec, in.stream, ...
+            this.currentVals = this.multiplier * Pulse.Dirac(this.t_vec, in.stream, ...
                 System.SAMPLING_INTERVAL);
         end
 
         function shapeInput(this)
             out = this.inputFilter.passThrough(this.currentVals, this.multiplier);
             this.currentVals = out;
-            %this.buildSpectrum();
         end
 
         function applyOutputFilter(this)
             this.outputFilter.construct(this.f_vec, this.spectrum);
             filtered_spec = sqr_filter .* this.spectrum;
-            [~, x] = IFFT(filtered_spec);
+            x = ifft(ifftshift(filtered_spec));
             this.currentVals = abs(x);
-        end
-
-        function buildSpectrum(this)
-            [f, spec] = FFT(this.currentVals);
-            this.f_vec = f;
-            this.spectrum = spec;
         end
 
         function addNoise(this, a)

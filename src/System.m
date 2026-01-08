@@ -95,8 +95,8 @@ classdef System < handle
         end
 
         function addNoise(this, a)
-            noisy_vals = ApplyNoise(this.currentVals, a);
-            this.currentVals = noisy_vals;
+            noise = randn(1, length(this.currentVals)) * sqrt(a);
+            this.currentVals = this.currentVals + noise;
         end
 
         function plot(this)

@@ -16,15 +16,15 @@ end
         case PulseShape.RECT
             pulse = RectPulse(input, 1, System.SAMPLING_INTERVAL/2, "false");
         case PulseShape.COS_SQR
-            pulse = CosSqr(input, 1, 1, "false");
+            pulse = CosSqr(input, 1, System.SAMPLING_INTERVAL, "false");
         case PulseShape.RCOS
-            pulse = RCos(input, 1, "false");
+            pulse = RCos(input/System.SAMPLING_INTERVAL, 1, "false");
         case PulseShape.RRCOS
             pulse = RRCos(input, 1, "false");
         case PulseShape.SINC
-            pulse = Sinc(input, "false");
+            pulse = Sinc(input/(System.SAMPLING_INTERVAL/2), "false");
         case PulseShape.MANCHESTER
-            pulse = Manchester(input);
+            pulse = Manchester(input/System.SAMPLING_INTERVAL);
         otherwise 
             pulse = RectPulse(input, 1, 0, 1, "false");
     end

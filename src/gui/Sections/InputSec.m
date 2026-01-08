@@ -40,7 +40,7 @@ classdef InputSec < handle
         
         
             pulse_dd = uidropdown(dd_panel, ...
-                "ValueChangedFcn",@(src,event) this.updatePulse(src,event, x));
+                "ValueChangedFcn",@(src,event) this.updatePulse(src,event));
             pulse_dd.Placeholder = 'Pulse Shape';
             pulse_dd.Items = this.getPulseShapes();
             pulse_dd.Position(1:3) = [5 100 80];
@@ -94,7 +94,7 @@ classdef InputSec < handle
             bg.BorderType = 'none';
             
             opt_1 = uiradiobutton(bg,"Text","Enter message", ...
-                "Position",[5 50 100 22]);
+                "Position",[5 40 100 22]);
             opt_1.Tag = 'msg';
 
             opt_3 = uiradiobutton(bg, "Text", "Generate random stream", ...
@@ -137,7 +137,7 @@ classdef InputSec < handle
             this.pulse_plot.YLim = [2*min(y) 2*max(y)];
         end
 
-        function updatePulse(~, src)
+        function updatePulse(this, src, ~)
             new_pulse = src.Value;
             this.system.updatePulse(new_pulse);
             this.redrawPulse();

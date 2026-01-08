@@ -11,7 +11,8 @@ classdef NoiseSec < handle
             
             n_i = uigridlayout(panel, [2 2]);
             
-            x_noisy = -5:0.01:5;
+            dt = 1/System.FS;
+            x_noisy = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
             pulse_shape = s.inputFilter.pulseShape;
             y_noisy = GeneratePulse(x_noisy, pulse_shape,s.multiplier);
             
@@ -19,18 +20,13 @@ classdef NoiseSec < handle
             n_ii.Layout.Row = 1;
             n_ii.Layout.Column = 1;
             
-            out_y = ApplyNoise(y_noisy, 0);
+            noise = randn(1, length(y_noisy)) * sqrt(0);
+            out_y = y_noisy + noise; 
             
             noisy_pulse = uiaxes(n_i);
             
-            mode_dd = uidropdown(n_ii);
-            mode_dd.Items = {'Additive White Noise'};
-            mode_dd.Layout.Row = 1;
-            mode_dd.Layout.Column = 1;
-            mode_dd.FontColor = [0.9 0.9 0.9];
-            
             noise_sld = uislider(n_ii, "ValueChangedFcn",@(src,event) this.updateSlider(src,event, noisy_pulse, x_noisy));
-            noise_sld.Limits = [0 5];
+            noise_sld.Limits = [0 2];
             noise_sld.Value = 0;
             noise_sld.Layout.Row = 5;
             noise_sld.Layout.Column = 1;
@@ -51,9 +47,10 @@ classdef NoiseSec < handle
         function updateSlider(this, ~, event, noisy_pulse, x)
             p_s = this.system.inputFilter.pulseShape;
             y = GeneratePulse(x, p_s, this.system.multiplier);
-            new_out_y = ApplyNoise(y, event.Value);
-            plot(noisy_pulse, x, new_out_y);
-            noisy_pulse.YLim = [min(new_out_y) * 2 - 1 max(new_out_y) * 2];
+            noise = randn(1, length(y)) * sqrt(event.Value);
+            plot(noisy_pulse, x, y + noise);
+            % Update the y-axis limits based on the new noisy output
+            ylim(noisy_pulse, [min(y + noise) * 2 - 1, max(y + noise) * 2]);
         end
     end
 end

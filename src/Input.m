@@ -13,8 +13,22 @@ classdef Input < handle
         end
 
         function readInput(this, input)
-            bin_stream = StrToBin(input);
-            this.stream = bin_stream; 
+            if (~isa(input, 'string') & ~isa(input, 'char'))
+                fprintf(2, "Error: StrToBin only accepts char and string types as input\n");
+                return;
+            end 
+        
+            if (isa(input, 'string'))
+                input = char(input);
+            end 
+        
+            check = input ~= '0' & input ~= '1';
+        
+            if any(check)
+                fprintf(2, "Error: Binary mode only accepts 1's and 0's");
+                return
+            end
+            this.stream = input - '0'; 
             this.updateSize();
         end
 

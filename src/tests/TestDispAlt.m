@@ -11,7 +11,7 @@ T0 = 5 * 10e-12;
 fs = 1000e9;   
 dt = 1/fs;
 t = -200e-12 : dt : 200e-12;
-sig = CosSqr(t/T0) + CosSqr((t-T0)/T0);
+sig = Pulse.CosSqr(t/T0, 1, 1) + Pulse.CosSqr((t-T0)/T0, 1, 1);
 
 N = length(sig);
 U0 = fftshift(fft(sig));

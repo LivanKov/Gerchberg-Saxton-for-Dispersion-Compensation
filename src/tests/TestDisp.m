@@ -11,7 +11,7 @@ T0 = 10e-12;
 fs = 1000e9;   
 dt = 1/fs;
 t = -200e-12 : dt : 200e-12;
-sig = RectPulse(t,1, T0) + RectPulse(t-2*T0,1, T0);
+sig = Pulse.RectPulse(t,1, T0) + Pulse.RectPulse(t-2*T0,1, T0);
 
 N = length(sig);
 U0 = fftshift(fft(sig));

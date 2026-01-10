@@ -16,7 +16,6 @@ classdef Settings < handle
             this.system = s;
             
             g = uigridlayout(this.parent, [6 2]);
-            g.BackgroundColor = [0.12 0.12 0.15];
             g.RowHeight = {'fit', 'fit', 'fit', 'fit', 'fit', '1x'};
             g.ColumnWidth = {'fit', '1x'};
             g.Padding = [10 10 10 10];
@@ -34,8 +33,7 @@ classdef Settings < handle
             this.samplingIntervalField.Layout.Row = 1;
             this.samplingIntervalField.Layout.Column = 2;
             
-            lbl2 = uilabel(g, 'Text', 'Sample Time (ps):', ...
-                'FontColor', [0.9 0.9 0.9]);
+            lbl2 = uilabel(g, 'Text', 'Sample Time (ps):');
             lbl2.Layout.Row = 2;
             lbl2.Layout.Column = 1;
             
@@ -45,8 +43,7 @@ classdef Settings < handle
             this.sampTimeField.Layout.Row = 2;
             this.sampTimeField.Layout.Column = 2;
             
-            lbl3 = uilabel(g, 'Text', 'Sampling Frequency (GHz):', ...
-                'FontColor', [0.9 0.9 0.9]);
+            lbl3 = uilabel(g, 'Text', 'Sampling Frequency (GHz):');
             lbl3.Layout.Row = 3;
             lbl3.Layout.Column = 1;
             
@@ -57,8 +54,7 @@ classdef Settings < handle
             this.fsField.Layout.Column = 2;
             
             % Channel Length
-            lbl4 = uilabel(g, 'Text', 'Channel Length (km):', ...
-                'FontColor', [0.9 0.9 0.9]);
+            lbl4 = uilabel(g, 'Text', 'Channel Length (km):');
             lbl4.Layout.Row = 4;
             lbl4.Layout.Column = 1;
             

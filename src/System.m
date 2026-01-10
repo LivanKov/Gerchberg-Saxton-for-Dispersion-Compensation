@@ -19,7 +19,8 @@ classdef System < handle
         chromaticDispersion CD
         input
         Output
-        currentVals; % current values output by the filter etc.
+        currentVals; % current values output by the filter etc.        
+        duplicatedVals;
         t_vec
         f_vec
         spectrum
@@ -29,7 +30,6 @@ classdef System < handle
     end
 
     properties(Constant)
-        SYMBOL_PRECISION = 0.01 % vector granularity / Precision
         SAMPLING_INTERVAL = 10e-12; % length of a single pulse
         SAMP_TIME = 200e-12;
         FS = 3000e9;
@@ -58,6 +58,7 @@ classdef System < handle
             i_f.pulseShape = pulse;
             this.currentVals = this.multiplier * Pulse.Dirac(this.t_vec, this.input.stream, ...
                 System.SAMPLING_INTERVAL);
+            this.duplicatedVals = this.currentVals;
         end
 
         function ingest(this, stream)
@@ -66,6 +67,7 @@ classdef System < handle
             this.rebuildTimeVec();
             this.currentVals = this.multiplier * Pulse.Dirac(this.t_vec, in.stream, ...
                 System.SAMPLING_INTERVAL);
+            this.duplicatedVals = this.currentVals;
         end
 
         function updateStream(this)
@@ -73,11 +75,13 @@ classdef System < handle
             this.rebuildTimeVec();
             this.currentVals = this.multiplier * Pulse.Dirac(this.t_vec, in.stream, ...
                 System.SAMPLING_INTERVAL);
+            this.duplicatedVals = this.currentVals;
         end
 
         function shapeInput(this)
             out = this.inputFilter.passThrough(this.currentVals, this.multiplier);
             this.currentVals = out;
+            this.duplicatedVals = this.currentVals;
         end
 
         function applyOutputFilter(this)
@@ -89,7 +93,7 @@ classdef System < handle
 
         function addNoise(this, a)
             noise = randn(1, length(this.currentVals)) * sqrt(a);
-            this.currentVals = this.currentVals + noise;
+            this.currentVals = this.duplicatedVals + noise;
         end
 
         function plot(this)
@@ -114,7 +118,8 @@ classdef System < handle
 
         function rebuildTimeVec(this)
             dt = 1/System.FS;
-            this.t_vec = -System.SAMP_TIME:dt:System.SAMP_TIME;
+            len = System.SAMP_TIME + System.SAMPLING_INTERVAL * length(this.input.stream);
+            this.t_vec = -len:dt:len;
         end
     end
 end

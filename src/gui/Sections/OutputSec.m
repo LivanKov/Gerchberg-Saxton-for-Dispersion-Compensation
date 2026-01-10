@@ -4,7 +4,7 @@ classdef OutputSec < handle
         system          
         Grid         
         TopAxes      
-        TimeSlider
+        Slider
         BottomAxes      
     end
     
@@ -22,9 +22,10 @@ classdef OutputSec < handle
             this.TopAxes.Layout.Column = 1;
             title(this.TopAxes, 'Top Axes');
             
-            this.TimeSlider = uislider(this.Grid);
-            this.TimeSlider.Layout.Row = 2;
-            this.TimeSlider.Layout.Column = 1;
+            this.Slider = uislider(this.Grid);
+            this.Slider.Layout.Row = 2;
+            this.Slider.Layout.Column = 1;
+            this.Slider.Value = 95;
             
             this.BottomAxes = uiaxes(this.Grid);
             this.BottomAxes.Layout.Row = 3;

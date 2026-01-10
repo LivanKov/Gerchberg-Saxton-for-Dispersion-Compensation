@@ -2,6 +2,7 @@ classdef NoiseSec < handle
     properties
         parent % Parent panel
         system System % System object
+        input_analysis_graph
     end
     
     methods
@@ -9,39 +10,42 @@ classdef NoiseSec < handle
             this.parent = panel;
             this.system = s;
             
-            n_i = uigridlayout(panel, [2 2]);
+            n_i = uigridlayout(panel, [2 1]);
             
             dt = 1/System.FS;
             x_noisy = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
             pulse_shape = s.inputFilter.pulseShape;
             y_noisy = Pulse.GeneratePulse(x_noisy, pulse_shape,s.multiplier);
             
-            n_ii = uigridlayout(n_i, [5 1]);
+            n_ii = uigridlayout(n_i, [1 2]);
             n_ii.Layout.Row = 1;
             n_ii.Layout.Column = 1;
             
             noise = randn(1, length(y_noisy)) * sqrt(0);
             out_y = y_noisy + noise; 
             
-            noisy_pulse = uiaxes(n_i);
+            noisy_pulse = uiaxes(n_ii);
             
-            noise_sld = uislider(n_ii, "ValueChangedFcn",@(src,event) this.updateSlider(src,event, noisy_pulse, x_noisy));
+            noise_sld_panel = uipanel(n_ii);
+            noise_sld_panel.Layout.Row = 1;
+            noise_sld_panel.Layout.Column = 1;
+
+            noise_sld = uislider(noise_sld_panel, "ValueChangedFcn",@(src,event) this.updateSlider(src,event, noisy_pulse, x_noisy));
             noise_sld.Limits = [0 2];
             noise_sld.Value = 0;
-            noise_sld.Layout.Row = 5;
-            noise_sld.Layout.Column = 1;
-            noise_sld.FontColor = [0.85 0.85 0.85];
+            noise_sld.Position(1:2) = [5 200];
             
             noisy_pulse.Layout.Row = 1;
             noisy_pulse.Layout.Column = 2;
-            noisy_pulse.Color = [0.18 0.18 0.21];
-            noisy_pulse.XColor = [0.6 0.6 0.65];
-            noisy_pulse.YColor = [0.6 0.6 0.65];
-            noisy_pulse.GridColor = [0.3 0.3 0.35];
-            noisy_pulse.MinorGridColor = [0.25 0.25 0.28];
-            
             plot(noisy_pulse,x_noisy,out_y);
             ylim(noisy_pulse, [min(out_y) * 2 - 1  max(out_y) * 2]);
+        
+            this.input_analysis_graph = uiaxes(n_i);
+            this.input_analysis_graph.Layout.Column = 1;
+            this.input_analysis_graph.Layout.Row = 2;
+            this.input_analysis_graph.Position(4) = 250;
+            this.input_analysis_graph.YLim = [0 1];
+            
         end
         
         function updateSlider(this, ~, event, noisy_pulse, x)
@@ -49,8 +53,9 @@ classdef NoiseSec < handle
             y = Pulse.GeneratePulse(x, p_s, this.system.multiplier);
             noise = randn(1, length(y)) * sqrt(event.Value);
             plot(noisy_pulse, x, y + noise);
-            % Update the y-axis limits based on the new noisy output
             ylim(noisy_pulse, [min(y + noise) * 2 - 1, max(y + noise) * 2]);
+            this.system.addNoise(event.Value);
+            plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);
         end
     end
 end

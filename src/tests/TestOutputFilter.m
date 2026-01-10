@@ -13,7 +13,7 @@ N = length(t);
 
 % s = sinc(freq*t) + sinc(freq*(t - 10)) + sinc(freq*(t - 20));
 % s = sin(freq*2*pi*t);
-s = RectPulse(freq*t, 1, 1) + RectPulse(freq*(t-10), 1, 1) + RectPulse(freq*(t-20), 1, 1);
+s = Pulse.RectPulse(freq*t, 1, 1) + Pulse.RectPulse(freq*(t-10), 1, 1) + Pulse.RectPulse(freq*(t-20), 1, 1);
 figure;
 subplot(N_plots, 1, 1);
 plot(t, s);
@@ -91,3 +91,6 @@ For a further details on decimating to a lower rate for improved filter performa
 %}
 
 % Effective SNR??
+
+%% Using system components
+

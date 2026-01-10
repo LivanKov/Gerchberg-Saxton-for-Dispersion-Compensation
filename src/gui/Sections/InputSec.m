@@ -178,7 +178,7 @@ classdef InputSec < handle
                input_txt_area.Enable = 'off';
                upload_txt_btn.Enable = 'off';
                input_txt_area.Placeholder = "Enter message";
-               upload_txt_btn.Text = "Upload Text";
+               upload_txt_btn.Text = "Upload";
            elseif opt == "msg"
                input_txt_area.Enable = 'on';
                upload_txt_btn.Enable = 'on';

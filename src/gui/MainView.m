@@ -20,9 +20,9 @@ classdef MainView < handle
             in_sec = uitab(tabs,'Title','Input');
             n_sec = uitab(tabs,'Title','Noise');
             % rec_sec = uitab(tabs,'Title','Receiver');
-            settings = uitab(tabs, 'Title', 'Settings');
             out_sec = uitab(tabs,'Title','Output');
-            uitab(tabs, 'Title', 'Experiment');
+            settings = uitab(tabs, 'Title', 'Settings');
+            % uitab(tabs, 'Title', 'Experiment');
             
             % Input section
             InputSec(in_sec, s);

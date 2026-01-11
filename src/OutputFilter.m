@@ -24,9 +24,5 @@ classdef OutputFilter < handle
             square_filter_full(ceil(length(f)/2) - idx + 2: ceil(length(f)/2) + idx - 1) = 1;
             out = square_filter_full;
         end
-
-        function y =  apply(this, input)
-            
-        end
     end
 end

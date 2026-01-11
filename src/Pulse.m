@@ -51,8 +51,6 @@ classdef Pulse
 
             for i = 1:length(x)
                 if (x_vals_it < length(x_vals) && abs(x(i) - x_vals(x_vals_it)) < tol)
-                    disp(x(i));
-                    disp(x_vals(x_vals_it));
                     y(i) = a(a_vals_it);
                     a_vals_it = a_vals_it + 1;
                     x_vals_it = x_vals_it + 1;

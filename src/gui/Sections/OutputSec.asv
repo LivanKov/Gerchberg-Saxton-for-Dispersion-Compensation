@@ -65,17 +65,15 @@ classdef OutputSec < handle
         end
         
         function generatePlot(this)
-            if ~isempty(this.MagLine) && isvalid(this.MagLine)
-                delete(this.MagLine);
-            end
+            if ~
+            delete(this.MagLine);
             if ~isempty(this.FilterLine) && isvalid(this.FilterLine)
                 delete(this.FilterLine);
             end
             spec = fftshift(fft(this.system.currentVals));
             N = length(this.system.t_vec);
             f = (-(N/2):(N/2-1)) * System.FS/N;
-            this.MagLine = plot(this.TopAxes, f, abs(spec), 'b');
-            this.TopAxes.YLim = [0 max(abs(spec)) * 1.2]
+            this.MagLine = plot(this.TopAxes, f, abs(spec));
             this.FilterLine = [];
         end
         

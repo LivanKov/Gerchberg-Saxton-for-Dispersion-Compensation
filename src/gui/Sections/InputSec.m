@@ -162,6 +162,8 @@ classdef InputSec < handle
                     this.refreshInputPlot();
                     plot(this.input_analysis_graph, sys.t_vec, sys.currentVals);
                     disp(this.input_analysis_graph.XLim);
+                    this.input_analysis_graph.XLim = [0 16 * sys.SAMPLING_INTERVAL];
+                    this.input_analysis_graph.YLim(2) = sys.multiplier;
                     sys.shapeInput();
                     hold(this.input_analysis_graph, 'on');
                     plot(this.input_analysis_graph, sys.t_vec, sys.currentVals);

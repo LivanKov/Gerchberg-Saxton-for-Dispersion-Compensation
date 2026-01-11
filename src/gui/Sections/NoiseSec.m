@@ -56,6 +56,7 @@ classdef NoiseSec < handle
             ylim(noisy_pulse, [min(y + noise) * 2 - 1, max(y + noise) * 2]);
             this.system.addNoise(event.Value);
             plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);
+            this.input_analysis_graph.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
         end
     end
 end

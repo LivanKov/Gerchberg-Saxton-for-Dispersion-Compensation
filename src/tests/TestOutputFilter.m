@@ -1,4 +1,4 @@
-clc;close all; clear all;
+clc;close all;
 
 freq = 2;
 samp_time = 100;
@@ -47,9 +47,6 @@ o_f = OutputFilter;
 o_f.areaCovered = 90;
 designed_filt = o_f.construct(f, spec);
 
-perf_filt = zeros(1, length(f));
-idx = abs(f) <= 2.5;
-perf_filt(idx) = 1;
 subplot(N_plots, 1, 5);
 plot(f, designed_filt);
 xlim([-20 20]);

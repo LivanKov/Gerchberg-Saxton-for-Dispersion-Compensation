@@ -79,7 +79,7 @@ classdef System < handle
         end
 
         function shapeInput(this)
-            out = this.inputFilter.passThrough(this.currentVals, this.multiplier);
+            out = this.inputFilter.passThrough(this.currentVals, 1);
             this.currentVals = out;
             this.duplicatedVals = this.currentVals;
         end
@@ -110,6 +110,22 @@ classdef System < handle
             nums = this.currentVals(ids);
             rounded = nums > 0.5;
             out = num2str(rounded);
+        end
+
+        function out = sample(this)
+            x_vals = 0:rate:rate*length(this.input.stream);
+            out = zeros(size(this.input.stream));
+            x_vals_it = 1;
+            out_it = 1;
+            tol = 1e-13;
+
+            for i = 1:length(x_vals)
+                if (x_vals_it < length(x_vals) && abs(x(i) - x_vals(x_vals_it)) < tol)
+                    y(i) = a(a_vals_it);
+                    out_it = out_it + 1;
+                    x_vals_it = x_vals_it + 1;
+                end
+            end
         end
 
         function addCD(this)

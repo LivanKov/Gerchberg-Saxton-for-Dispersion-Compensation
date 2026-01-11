@@ -22,8 +22,7 @@ classdef Settings < handle
             g.RowSpacing = 10;
             g.ColumnSpacing = 10;
             
-            lbl1 = uilabel(g, 'Text', 'Sampling Interval (ps):', ...
-                'FontColor', [0.9 0.9 0.9]);
+            lbl1 = uilabel(g, 'Text', 'Sampling Interval (ps):');
             lbl1.Layout.Row = 1;
             lbl1.Layout.Column = 1;
             
@@ -64,8 +63,7 @@ classdef Settings < handle
             this.chanLenField.Layout.Row = 4;
             this.chanLenField.Layout.Column = 2;
             
-            lbl5 = uilabel(g, 'Text', 'Wavelength (nm):', ...
-                'FontColor', [0.9 0.9 0.9]);
+            lbl5 = uilabel(g, 'Text', 'Wavelength (nm):');
             lbl5.Layout.Row = 5;
             lbl5.Layout.Column = 1;
             

@@ -9,6 +9,8 @@ classdef OutputSec < handle
         Slider
         BottomAxes
         ValueLabel
+        BottomGrid
+        ApplyButton
         
         % Property to store the specific line object for the filter
         FilterLine 
@@ -54,10 +56,21 @@ classdef OutputSec < handle
             % Note: Added the event argument (src, event) or (~, event) to the callback
             this.Slider.ValueChangedFcn = @(src, event) this.onSliderChanged(src, event);
             
-            this.BottomAxes = uiaxes(this.Grid);
-            this.BottomAxes.Layout.Row = 2;
+            this.BottomGrid = uigridlayout(this.Grid);
+            this.BottomGrid.Layout.Row = 2;
+            this.BottomGrid.Layout.Column = 1;
+            this.BottomGrid.ColumnWidth = {'1x'};
+            this.BottomGrid.RowHeight = {'1x', 20};
+            
+            this.BottomAxes = uiaxes(this.BottomGrid);
+            this.BottomAxes.Layout.Row = 1;
             this.BottomAxes.Layout.Column = 1;
             title(this.BottomAxes, 'Bottom Axes');
+            
+            this.ApplyButton = uibutton(this.BottomGrid, 'Text', 'Apply');
+            this.ApplyButton.Layout.Row = 2;
+            this.ApplyButton.Layout.Column = 1;
+            this.ApplyButton.ButtonPushedFcn = @(btn, event) this.applyFilter();
             
             N = length(this.system.currentVals);
             spec = fftshift(fft(this.system.currentVals));
@@ -95,6 +108,13 @@ classdef OutputSec < handle
                 delete(this.FilterLine);
             end
             this.FilterLine = plot(this.TopAxes, f, max(abs(spec)) * designed_filt, 'Color', [1, 0.5, 0]);
+            plot(this.BottomAxes, this.system.t_vec, this.system.currentVals);
+            this.BottomAxes.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
+        end
+        
+        function applyFilter(this)
+            % Dummy function - will be implemented later
+            disp('Apply button pressed');
         end
     end
 end

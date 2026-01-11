@@ -121,7 +121,6 @@ plot(abs(x_new_alpha));
 title("Filtered Time Domain (Reconstructed via IFFT)");
 xlabel('Time (t)'); ylabel('x(t)');
 grid on;
-% res = sampleOutput(t_new_alpha, x_new_alpha);
 
 
 % Faltung vom Rauschen und Filter berechnen

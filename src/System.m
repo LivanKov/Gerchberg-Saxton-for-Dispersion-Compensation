@@ -27,6 +27,7 @@ classdef System < handle
         oversampling_ratio
         freq
         multiplier
+        sample_indices
     end
 
     properties(Constant)
@@ -56,8 +57,10 @@ classdef System < handle
         function updatePulse(this, pulse)
             i_f = this.inputFilter;
             i_f.pulseShape = pulse;
-            this.currentVals = this.multiplier * Pulse.Dirac(this.t_vec, this.input.stream, ...
+            [vals, indices] = Pulse.Dirac(this.t_vec, in.stream, ...
                 System.SAMPLING_INTERVAL);
+            this.currentVals = this.multiplier * vals;
+            this.sample_indices = indices;
             this.duplicatedVals = this.currentVals;
         end
 
@@ -65,16 +68,20 @@ classdef System < handle
             in = this.input;
             in.readInput(stream);
             this.rebuildTimeVec();
-            this.currentVals = this.multiplier * Pulse.Dirac(this.t_vec, in.stream, ...
+            [vals, indices] = Pulse.Dirac(this.t_vec, in.stream, ...
                 System.SAMPLING_INTERVAL);
+            this.currentVals = this.multiplier * vals;
+            this.sample_indices = indices;
             this.duplicatedVals = this.currentVals;
         end
 
         function updateStream(this)
             in = this.input;
             this.rebuildTimeVec();
-            this.currentVals = this.multiplier * Pulse.Dirac(this.t_vec, in.stream, ...
+            [vals, indices] = Pulse.Dirac(this.t_vec, in.stream, ...
                 System.SAMPLING_INTERVAL);
+            this.currentVals = this.multiplier * vals;
+            this.sample_indices = indices;
             this.duplicatedVals = this.currentVals;
         end
 
@@ -104,28 +111,8 @@ classdef System < handle
             plot(this.t_vec, this.currentVals);
         end
 
-        function out = sampleOutput(this)
-            mods = mod(this.t_vec, System.SAMPLING_INTERVAL);
-            ids = mods == 0;
-            nums = this.currentVals(ids);
-            rounded = nums > 0.5;
-            out = num2str(rounded);
-        end
-
         function out = sample(this)
-            x_vals = 0:rate:rate*length(this.input.stream);
-            out = zeros(size(this.input.stream));
-            x_vals_it = 1;
-            out_it = 1;
-            tol = 1e-13;
-
-            for i = 1:length(x_vals)
-                if (x_vals_it < length(x_vals) && abs(x(i) - x_vals(x_vals_it)) < tol)
-                    y(i) = a(a_vals_it);
-                    out_it = out_it + 1;
-                    x_vals_it = x_vals_it + 1;
-                end
-            end
+            out = this.currentVals(this.sample_indices) / this.multiplier;
         end
 
         function addCD(this)

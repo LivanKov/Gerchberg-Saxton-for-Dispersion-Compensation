@@ -36,7 +36,7 @@ classdef Pulse
                 y = y .* cossqr;
         end
 
-        function y = Dirac(x, a, rate)
+        function [y, samp_indices] = Dirac(x, a, rate)
             arguments
                 x double
                 a double
@@ -48,10 +48,12 @@ classdef Pulse
             x_vals_it = 1;
             a_vals_it = 1;
             tol = 1e-13;
+            samp_indices = zeros(size(a));
 
             for i = 1:length(x)
                 if (x_vals_it < length(x_vals) && abs(x(i) - x_vals(x_vals_it)) < tol)
                     y(i) = a(a_vals_it);
+                    samp_indices(a_vals_it) = i;
                     a_vals_it = a_vals_it + 1;
                     x_vals_it = x_vals_it + 1;
                 end

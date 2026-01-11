@@ -98,7 +98,8 @@ classdef OutputSec < handle
             this.ValueLabel.Text = sprintf('%d%%', currentVal);
             o_f = this.system.outputFilter;
             N = length(this.system.t_vec);
-            spec = fftshift(fft(this.system.currentVals));
+            spec = fftshift(fft(this.system.nonNoisyVals));
+            noisy_spec = fftshift(fft(this.system.currentVals));
             f = (-(N/2):(N/2-1)) * System.FS/N;
             
             o_f.areaCovered = currentVal;
@@ -107,14 +108,17 @@ classdef OutputSec < handle
             if ~isempty(this.FilterLine) && isvalid(this.FilterLine)
                 delete(this.FilterLine);
             end
-            this.FilterLine = plot(this.TopAxes, f, max(abs(spec)) * designed_filt, 'Color', [1, 0.5, 0]);
+            this.FilterLine = plot(this.TopAxes, f, max(abs(noisy_spec)) * designed_filt, 'Color', [1, 0.5, 0]);
             plot(this.BottomAxes, this.system.t_vec, this.system.currentVals);
             this.BottomAxes.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
+            this.BottomAxes.YLim = [1.2 * min(this.system.currentVals) 1.2 * max(this.system.currentVals)];
         end
         
         function applyFilter(this)
-            % Dummy function - will be implemented later
-            disp('Apply button pressed');
+            this.system.applyOutputFilter();
+            plot(this.BottomAxes, this.system.t_vec, this.system.currentVals);
+            this.BottomAxes.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
+            this.BottomAxes.YLim = [1.2 * min(this.system.currentVals) 1.2 * max(this.system.currentVals)];
         end
     end
 end

@@ -31,7 +31,7 @@ classdef NoiseSec < handle
             noise_sld_panel.Layout.Column = 1;
 
             noise_sld = uislider(noise_sld_panel, "ValueChangedFcn",@(src,event) this.updateSlider(src,event, noisy_pulse, x_noisy));
-            noise_sld.Limits = [0 2];
+            noise_sld.Limits = [0 5];
             noise_sld.Value = 0;
             noise_sld.Position(1:2) = [5 200];
             
@@ -57,6 +57,7 @@ classdef NoiseSec < handle
             this.system.addNoise(event.Value);
             plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);
             this.input_analysis_graph.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
+            this.input_analysis_graph.YLim = [1.2 * min(this.system.currentVals) 1.2 * max(this.system.currentVals)];
         end
     end
 end

@@ -19,11 +19,10 @@ classdef System < handle
         chromaticDispersion CD
         input
         Output
-        currentVals; % current values output by the filter etc.        
+        currentVals; % current values output by the filter etc.
+        nonNoisyVals;
         duplicatedVals;
         t_vec
-        f_vec
-        spectrum
         oversampling_ratio
         freq
         multiplier
@@ -57,11 +56,6 @@ classdef System < handle
         function updatePulse(this, pulse)
             i_f = this.inputFilter;
             i_f.pulseShape = pulse;
-            [vals, indices] = Pulse.Dirac(this.t_vec, in.stream, ...
-                System.SAMPLING_INTERVAL);
-            this.currentVals = this.multiplier * vals;
-            this.sample_indices = indices;
-            this.duplicatedVals = this.currentVals;
         end
 
         function ingest(this, stream)
@@ -89,11 +83,16 @@ classdef System < handle
             out = this.inputFilter.passThrough(this.currentVals, 1);
             this.currentVals = out;
             this.duplicatedVals = this.currentVals;
+            this.nonNoisyVals = this.currentVals;
         end
 
         function applyOutputFilter(this)
-            this.outputFilter.construct(this.f_vec, this.spectrum);
-            filtered_spec = sqr_filter .* this.spectrum;
+            N = length(this.t_vec);
+            f = (-(N/2):(N/2-1)) * fs/N;
+            no_noise_spec = fftshift(fft(this.nonNoisyVals));
+            designed_filt = this.outputFilter.construct(f, no_noise_spec);
+            noise_sig_mag = fftshift(fft(this.currentVals));
+            filtered_spec = designed_filt .* noise_sig_mag;
             x = ifft(ifftshift(filtered_spec));
             this.currentVals = abs(x);
         end

@@ -88,7 +88,7 @@ classdef System < handle
 
         function applyOutputFilter(this)
             N = length(this.t_vec);
-            f = (-(N/2):(N/2-1)) * fs/N;
+            f = (-(N/2):(N/2-1)) * System.FS/N;
             no_noise_spec = fftshift(fft(this.nonNoisyVals));
             designed_filt = this.outputFilter.construct(f, no_noise_spec);
             noise_sig_mag = fftshift(fft(this.currentVals));

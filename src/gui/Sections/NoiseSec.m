@@ -14,7 +14,7 @@ classdef NoiseSec < handle
             
             dt = 1/System.FS;
             x_noisy = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
-            pulse_shape = s.inputFilter.pulseShape;
+            pulse_shape = s.pulseShape;
             y_noisy = Pulse.GeneratePulse(x_noisy, pulse_shape,s.multiplier);
             
             n_ii = uigridlayout(n_i, [1 2]);
@@ -49,7 +49,7 @@ classdef NoiseSec < handle
         end
         
         function updateSlider(this, ~, event, noisy_pulse, x)
-            p_s = this.system.inputFilter.pulseShape;
+            p_s = this.system.pulseShape;
             y = Pulse.GeneratePulse(x, p_s, this.system.multiplier);
             noise = randn(1, length(y)) * sqrt(event.Value);
             plot(noisy_pulse, x, y + noise);

@@ -2,7 +2,7 @@ s = System;
 s.ingest('1010101010100001');
 disp("Input Sequence");
 disp(s.input.stream);
-s.updatePulse(Pulse.SINC);
+s.pulseShape = Pulse.SINC;
 s.shapeInput;
 pulse = s.currentVals;
 t = s.t_vec;

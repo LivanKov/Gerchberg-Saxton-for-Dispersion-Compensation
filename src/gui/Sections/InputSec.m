@@ -23,7 +23,7 @@ classdef InputSec < handle
             g_i1.Padding(1) = 30;
             
             x = -System.SAMPLING_INTERVAL:1/System.FS:System.SAMPLING_INTERVAL;
-            p_s = s.inputFilter.pulseShape;
+            p_s = s.pulseShape;
             y = Pulse.GeneratePulse(x, p_s, s.multiplier);
             this.pulse_plot = uiaxes(g_i1);
             f_pulse = uiaxes(g_i1);
@@ -130,7 +130,7 @@ classdef InputSec < handle
         end
 
         function redrawPulse(this)
-            p_s = this.system.inputFilter.pulseShape;
+            p_s = this.system.pulseShape;
             x = -System.SAMPLING_INTERVAL:1/System.FS:System.SAMPLING_INTERVAL;
             y = Pulse.GeneratePulse(x, p_s, this.system.multiplier);
             plot(this.pulse_plot,x, y);
@@ -138,8 +138,7 @@ classdef InputSec < handle
         end
 
         function updatePulse(this, src, ~)
-            new_pulse = src.Value;
-            this.system.updatePulse(new_pulse);
+            this.system.pulseShape = src.Value;
             this.redrawPulse();
         end
 

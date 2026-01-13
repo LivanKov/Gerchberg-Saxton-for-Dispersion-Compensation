@@ -2,8 +2,7 @@
 % Core functionalities will be extended over 
 % in order to simulate more conditions
 
-% Properties:
-%   InputFilter: used for pulse shaping via convolution 
+% Properties: 
 %   OutputFilter: used for signal reconstruction; matched filter 
 %   Noise: basic noise simulation. Add support for multiple modes
 %   Input: input raw data and perform various operations
@@ -14,7 +13,6 @@
 
 classdef System < handle
     properties
-        inputFilter InputFilter
         outputFilter OutputFilter
         chromaticDispersion CD
         input
@@ -27,6 +25,7 @@ classdef System < handle
         freq
         multiplier
         sample_indices
+        pulseShape Pulse
     end
 
     properties(Constant)
@@ -46,16 +45,9 @@ classdef System < handle
                 i = Input;
                 sysObj.input = i;
             end
-            i_f = InputFilter;
-            sysObj.inputFilter = i_f;
             o_f = OutputFilter;
             sysObj.outputFilter = o_f;
             sysObj.multiplier = 1;
-        end
-
-        function updatePulse(this, pulse)
-            i_f = this.inputFilter;
-            i_f.pulseShape = pulse;
         end
 
         function ingest(this, stream)
@@ -80,7 +72,10 @@ classdef System < handle
         end
 
         function shapeInput(this)
-            out = this.inputFilter.passThrough(this.currentVals, 1);
+            dt = 1/System.FS;
+            sym_time_vec = -System.SAMP_TIME:dt:System.SAMP_TIME;
+            pulse = Pulse.GeneratePulse(sym_time_vec, this.pulseShape, this.multiplier);
+            out = conv(this.currentVals, pulse, 'same');
             this.currentVals = out;
             this.duplicatedVals = this.currentVals;
             this.nonNoisyVals = this.currentVals;
@@ -116,6 +111,10 @@ classdef System < handle
 
         function addCD(this)
             this.currentVals = this.chromaticDispersion.input();
+        end
+
+        function out = sqrLawDetect(this)
+            out = this.currentVals.^2; % Square law detection
         end
 
         function rebuildTimeVec(this)

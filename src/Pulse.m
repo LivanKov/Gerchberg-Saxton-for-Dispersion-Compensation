@@ -5,7 +5,8 @@ classdef Pulse
         RCOS,
         SINC,
         RRCOS,
-        MANCHESTER
+        MANCHESTER,
+        GAUS
     end
 
     methods(Static)
@@ -23,6 +24,8 @@ classdef Pulse
                     pulse = Pulse.Sinc(input/(System.SAMPLING_INTERVAL/2));
                 case Pulse.MANCHESTER
                     pulse = Pulse.Manchester(input/System.SAMPLING_INTERVAL);
+                case Pulse.GAUS
+                    pulse = Pulse.Gaus(input, 1, System.SAMPLING_INTERVAL);
                 otherwise 
                     pulse = Pulse.RectPulse(input, 1, 0, 1);
             end

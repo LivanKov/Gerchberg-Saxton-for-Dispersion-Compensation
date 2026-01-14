@@ -48,6 +48,7 @@ classdef System < handle
             o_f = OutputFilter;
             sysObj.outputFilter = o_f;
             sysObj.multiplier = 1;
+            sysObj.pulseShape = Pulse.RECT;
         end
 
         function ingest(this, stream)
@@ -121,6 +122,10 @@ classdef System < handle
             dt = 1/System.FS;
             len = System.SAMP_TIME + System.SAMPLING_INTERVAL * length(this.input.stream);
             this.t_vec = -len:dt:len;
+        end
+
+        function applySquareLaw(this)
+            this.currentVals = this.currentVals .^ 2;
         end
     end
 end

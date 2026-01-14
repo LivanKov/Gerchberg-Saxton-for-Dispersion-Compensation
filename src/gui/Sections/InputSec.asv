@@ -71,7 +71,7 @@ classdef InputSec < handle
             this.pulse_plot.Layout.Row = 1;
             this.pulse_plot.Layout.Column = 2;
             this.pulse_plot.YLim = [2 * min(y) 2 * max(y)];
-            this.pulse_plot.XLim = [-System.SAMPLING_INTERVAL System.SAMPLING_INTERVAL];
+            this.pulse
         
             f_pulse.Layout.Row = 1;
             f_pulse.Layout.Column = 3;
@@ -148,6 +148,7 @@ classdef InputSec < handle
             y = Pulse.GeneratePulse(x, p_s, this.system.multiplier);
             plot(this.pulse_plot,x, y);
             this.pulse_plot.YLim = [2*min(y) 2*max(y)];
+            this.pulse_plot.XLim = [-System.SAMPLING_INTERVAL System.SAMPLING_INTERVAL];
         end
 
         function updatePulse(this, src, ~)

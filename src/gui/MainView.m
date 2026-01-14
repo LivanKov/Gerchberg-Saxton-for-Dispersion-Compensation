@@ -19,11 +19,12 @@ classdef MainView < handle
             tabs = uitabgroup(g);
             in_sec = uitab(tabs,'Title','Input');
             n_sec = uitab(tabs,'Title','Noise');
-            % rec_sec = uitab(tabs,'Title','Receiver');
             out_sec = uitab(tabs,'Title','Output');
             sample_sec = uitab(tabs,'Title','Sample');
+            optical_sec = uitab(tabs,'Title','Optical');
             settings = uitab(tabs, 'Title', 'Settings');
-            % uitab(tabs, 'Title', 'Experiment');
+            overview_sec = uitab(tabs,'Title','Overview');
+
             
             % Input section
             InputSec(in_sec, s);
@@ -37,8 +38,13 @@ classdef MainView < handle
             % Sample section
             SampleSec(sample_sec, s);
 
+            % Optical section
+            Optical(optical_sec, s);
+
             % Settings section
             Settings(settings, s);
+
+            OverviewSec(overview_sec, s);
 
         end
     end

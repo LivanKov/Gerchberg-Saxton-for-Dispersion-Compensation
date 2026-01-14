@@ -93,7 +93,6 @@ classdef OutputSec < handle
         end
         
         function onSliderChanged(this, ~, event)
-            disp(event.Value);
             currentVal = round(event.Value);
             this.ValueLabel.Text = sprintf('%d%%', currentVal);
             o_f = this.system.outputFilter;

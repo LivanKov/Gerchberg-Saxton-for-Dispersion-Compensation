@@ -6,13 +6,16 @@ classdef InputSec < handle
         size_label % Access the data size label
         input_analysis_graph % Access the input analysis graph
         pulse_plot % Access the single pulse plot
+        f_pulse % Access the frequency domain plot
         alpha_slider % Access the alpha slider
+        alpha_value
     end
 
     methods
         function this = InputSec(panel, s)
             this.parent = panel;
             this.system = s;
+            this.alpha_value = 1;
             g_i = uigridlayout(this.parent, [3 1]);
             g_i.RowHeight = {180, 130, '1x'};
             
@@ -25,9 +28,9 @@ classdef InputSec < handle
             
             x = -System.SAMP_TIME:1/System.FS:System.SAMP_TIME;
             p_s = s.pulseShape;
-            y = Pulse.GeneratePulse(x, p_s, s.multiplier);
+            y = Pulse.GeneratePulse(x, p_s, s.multiplier, this.alpha_value);
             this.pulse_plot = uiaxes(g_i1);
-            f_pulse = uiaxes(g_i1);
+            this.f_pulse = uiaxes(g_i1);
         
             dd_panel = uipanel(g_i1);
             dd_panel.Layout.Row = 1;
@@ -63,7 +66,7 @@ classdef InputSec < handle
             this.alpha_slider = uislider(dd_panel, ...
                 'ValueChangedFcn', @(src,event) this.changeAlpha(src, event));
             this.alpha_slider.Limits = [0 1];
-            this.alpha_slider.Value = 0;
+            this.alpha_slider.Value = 1;
             this.alpha_slider.Position = [8 40 100 3];
             this.alpha_slider.Enable = 'off';
             
@@ -73,10 +76,15 @@ classdef InputSec < handle
             this.pulse_plot.YLim = [2 * min(y) 2 * max(y)];
             this.pulse_plot.XLim = [-System.SAMPLING_INTERVAL System.SAMPLING_INTERVAL];
         
-            f_pulse.Layout.Row = 1;
-            f_pulse.Layout.Column = 3;
+            this.f_pulse.Layout.Row = 1;
+            this.f_pulse.Layout.Column = 3;
         
             plot(this.pulse_plot,x,y);
+            
+            % Plot frequency domain
+            y_fft = fftshift(fft(y));
+            plot(this.f_pulse, abs(y_fft));
+            this.f_pulse.YLim = [0 1.2 * max(abs(y_fft))];
             
             g_i2 = uigridlayout(g_i);
             g_i2.ColumnWidth = {120, '1x'};
@@ -145,9 +153,12 @@ classdef InputSec < handle
         function redrawPulse(this)
             p_s = this.system.pulseShape;
             x = -System.SAMP_TIME:1/System.FS:System.SAMP_TIME;
-            y = Pulse.GeneratePulse(x, p_s, this.system.multiplier);
+            y = Pulse.GeneratePulse(x, p_s, this.system.multiplier, this.alpha_value);
             plot(this.pulse_plot,x, y);
             this.pulse_plot.YLim = [2*min(y) 2*max(y)];
+            y_fft = fftshift(fft(y));
+            plot(this.f_pulse, abs(y_fft));
+            this.f_pulse.YLim = [0 1.2*max(abs(y_fft))];
         end
 
         function updatePulse(this, src, ~)
@@ -226,8 +237,9 @@ classdef InputSec < handle
             this.redrawPulse;
         end
 
-        function changeAlpha(this, src, ~)
-            % TODO: Implement alpha value change handler
+        function changeAlpha(this, ~, event)
+            this.alpha_value = event.Value;
+            this.redrawPulse();
         end
     end
 end

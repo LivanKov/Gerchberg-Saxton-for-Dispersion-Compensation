@@ -32,7 +32,7 @@ classdef System < handle
         SAMPLING_INTERVAL = 10e-12; % length of a single pulse
         SAMP_TIME = 200e-12;
         FS = 3000e9;
-        CHAN_LEN = 50;
+        CHAN_LEN = 5;
         LIGHT = 3e8;    
         LAMBDA = 1550e-9; % Carrier wavelength, default value for an optical comms system  
     end
@@ -122,6 +122,17 @@ classdef System < handle
             dt = 1/System.FS;
             len = System.SAMP_TIME + System.SAMPLING_INTERVAL * length(this.input.stream);
             this.t_vec = -len:dt:len;
+        end
+
+        function applyChromaticDispersion(this)
+            D = 17;
+            beta2 = -(System.LAMBDA^2 / (2*pi*System.LIGHT)) * (D * 1e-3);
+            N = length(this.currentVals);
+            U0 = fftshift(fft(this.currentVals));
+            f = (-((N-1)/2):(N/2)) * System.FS/N * 2*pi;
+            H = exp(1i * (beta2/2) * f.^2 * System.CHAN_LEN); 
+            U_out = U0 .* H;
+            this.currentVals = abs(ifft(ifftshift(U_out)));
         end
 
         function applySquareLaw(this)

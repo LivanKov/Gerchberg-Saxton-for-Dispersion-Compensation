@@ -3,7 +3,7 @@ classdef Optical < handle
     end
 
     methods
-        function this = Optical(parent, system)
+        function this = Optical(parent, ~)
             % Create grid layout
             g = uigridlayout(parent, [3 1]);
             g.RowHeight = {'fit', 'fit', 'fit'};

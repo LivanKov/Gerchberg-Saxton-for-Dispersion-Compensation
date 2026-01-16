@@ -131,14 +131,6 @@ classdef Pulse
             y(q) = a/(T * sqrt(2)) * ((1 + 2/pi) * sin(pi/(4*a)) + (1 - 2/pi) * cos(pi/(4*a)));
             y(z) = 1 / T * (1 + a*(4 / pi - 1));
         end
-            
-        function y = numer(x, a, T) 
-            y = sin(pi*x/T*(1-a)) + 4 * a * x/T .* cos(pi*x/T*(1 + a));
-        end
-        
-        function y = denom(x, a, T)
-            y = pi * x/T .* (1 - (4*a*x/T).^2); 
-        end
 
         function y = Sinc(x)
             y = ones(size(x));

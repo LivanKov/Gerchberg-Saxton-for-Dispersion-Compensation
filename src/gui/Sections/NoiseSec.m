@@ -7,6 +7,8 @@ classdef NoiseSec < handle
         disabled_plot % Flag to disable plotting
         energy_label % Label to display pulse energy per symbol
         noise_power_label % Label to display noise power
+        snr_label % Label to display SNR
+        snr_db_label % Label to display SNR in dB
     end
     
     methods
@@ -52,6 +54,16 @@ classdef NoiseSec < handle
             this.noise_power_label.FontSize = 15;
             this.noise_power_label.Text = "Noise Power: 0 W";
             
+            this.snr_label = uilabel(noise_sld_panel);
+            this.snr_label.Position = [5 50 200 20];
+            this.snr_label.FontSize = 15;
+            this.snr_label.Text = "SNR: Inf";
+            
+            this.snr_db_label = uilabel(noise_sld_panel);
+            this.snr_db_label.Position = [5 25 200 20];
+            this.snr_db_label.FontSize = 15;
+            this.snr_db_label.Text = "SNR (dB): Inf";
+            
             noisy_pulse.Layout.Row = 1;
             noisy_pulse.Layout.Column = 2;
             plot(noisy_pulse,x_noisy,out_y);
@@ -85,6 +97,16 @@ classdef NoiseSec < handle
             
             noise_power = event.Value;
             this.noise_power_label.Text = "Noise Power: " + string(noise_power) + " W";
+            
+            if noise_power > 0
+                snr = energy_per_symbol / (noise_power / (1/System.SAMPLING_INTERVAL));
+                snr_db = 10 * log10(snr);
+                this.snr_label.Text = "SNR: " + string(snr);
+                this.snr_db_label.Text = "SNR (dB): " + string(snr_db);
+            else
+                this.snr_label.Text = "SNR: Inf";
+                this.snr_db_label.Text = "SNR (dB): Inf";
+            end
             
             this.system.addNoise(event.Value);
             if ~this.disabled_plot

@@ -148,5 +148,10 @@ classdef System < handle
             totalBits = length(inputValues);
             ber = (errors / totalBits) * 100;
         end
+
+        function plotBERGraph(this)
+            
+            
+        end
     end
 end

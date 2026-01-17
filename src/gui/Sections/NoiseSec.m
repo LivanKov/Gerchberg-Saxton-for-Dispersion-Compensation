@@ -5,6 +5,8 @@ classdef NoiseSec < handle
         input_analysis_graph
         noise_switch % Access the noise analysis switch
         disabled_plot % Flag to disable plotting
+        energy_label % Label to display pulse energy per symbol
+        noise_power_label % Label to display noise power
     end
     
     methods
@@ -39,6 +41,17 @@ classdef NoiseSec < handle
             noise_sld.Value = 0;
             noise_sld.Position(1:2) = [5 200];
             
+            this.energy_label = uilabel(noise_sld_panel);
+            this.energy_label.Position = [5 100 200 20];
+            this.energy_label.FontSize = 15;
+            energy_per_symbol = trapz(x_noisy, abs(y_noisy).^2);
+            this.energy_label.Text = "Energy/Symbol: " + string(energy_per_symbol) + " J";
+            
+            this.noise_power_label = uilabel(noise_sld_panel);
+            this.noise_power_label.Position = [5 75 200 20];
+            this.noise_power_label.FontSize = 15;
+            this.noise_power_label.Text = "Noise Power: 0 W";
+            
             noisy_pulse.Layout.Row = 1;
             noisy_pulse.Layout.Column = 2;
             plot(noisy_pulse,x_noisy,out_y);
@@ -63,8 +76,16 @@ classdef NoiseSec < handle
             p_s = this.system.pulseShape;
             y = Pulse.GeneratePulse(x, p_s, this.system.multiplier);
             noise = randn(1, length(y)) * sqrt(event.Value);
-            plot(noisy_pulse, x, y + noise);
-            ylim(noisy_pulse, [min(y + noise) * 2 - 1, max(y + noise) * 2]);
+            noisy_signal = y + noise;
+            plot(noisy_pulse, x, noisy_signal);
+            ylim(noisy_pulse, [min(noisy_signal) * 2 - 1, max(noisy_signal) * 2]);
+            
+            energy_per_symbol = trapz(x, abs(y).^2);
+            this.energy_label.Text = "Energy/Symbol: " + string(energy_per_symbol) + " J";
+            
+            noise_power = event.Value;
+            this.noise_power_label.Text = "Noise Power: " + string(noise_power) + " W";
+            
             this.system.addNoise(event.Value);
             if ~this.disabled_plot
                 plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);

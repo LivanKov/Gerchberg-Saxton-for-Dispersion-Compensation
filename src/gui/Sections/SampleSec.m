@@ -59,12 +59,8 @@ classdef SampleSec < handle
         end
         
         function onSampleButtonPushed(this, ~, ~)
-            sampledValues = this.system.sample();
+            [ber, sampledValues] = this.system.sampleInput();
             inputValues = this.system.input.stream;
-            binarySampled = double(sampledValues >= 0.5);
-            errors = sum(inputValues ~= binarySampled);
-            totalBits = length(inputValues);
-            ber = (errors / totalBits) * 100;
             this.InputValueLabel.Text = mat2str(inputValues);
             this.SampledValueLabel.Text = mat2str(round(sampledValues, 2));
             this.BERValueLabel.Text = sprintf('%.2f%%', ber);

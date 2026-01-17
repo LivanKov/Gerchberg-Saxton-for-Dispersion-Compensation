@@ -111,10 +111,6 @@ classdef System < handle
             plot(this.t_vec, this.currentVals);
         end
 
-        function out = sample(this)
-            out = this.currentVals(this.sample_indices) / this.multiplier;
-        end
-
         function addCD(this)
             this.currentVals = this.chromaticDispersion.input();
         end
@@ -142,6 +138,15 @@ classdef System < handle
 
         function applySquareLaw(this)
             this.currentVals = this.currentVals .^ 2;
+        end
+
+        function [ber, sampledValues] = sampleInput(this)
+            sampledValues = this.currentVals(this.sample_indices) / this.multiplier;
+            inputValues = this.input.stream;
+            binarySampled = double(sampledValues >= 0.5);
+            errors = sum(inputValues ~= binarySampled);
+            totalBits = length(inputValues);
+            ber = (errors / totalBits) * 100;
         end
     end
 end

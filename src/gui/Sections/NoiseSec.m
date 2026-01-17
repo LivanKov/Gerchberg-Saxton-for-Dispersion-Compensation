@@ -3,14 +3,18 @@ classdef NoiseSec < handle
         parent % Parent panel
         system System % System object
         input_analysis_graph
+        noise_switch % Access the noise analysis switch
+        disabled_plot % Flag to disable plotting
     end
     
     methods
         function this = NoiseSec(panel, s)
             this.parent = panel;
             this.system = s;
+            this.disabled_plot = true;
             
             n_i = uigridlayout(panel, [2 1]);
+            n_i.RowHeight = {'1x', 300};
             
             dt = 1/System.FS;
             x_noisy = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
@@ -40,9 +44,16 @@ classdef NoiseSec < handle
             plot(noisy_pulse,x_noisy,out_y);
             ylim(noisy_pulse, [min(out_y) * 2 - 1  max(out_y) * 2]);
         
-            this.input_analysis_graph = uiaxes(n_i);
-            this.input_analysis_graph.Layout.Column = 1;
-            this.input_analysis_graph.Layout.Row = 2;
+            switch_panel = uipanel(n_i);
+            switch_panel.Layout.Column = 1;
+            switch_panel.Layout.Row = 2;
+            switch_panel.BorderType = 'none';
+        
+            this.noise_switch = uiswitch(switch_panel, 'slider', ...
+                'ValueChangedFcn', @(src, event) this.onNoiseSwitchChanged(src, event));
+            this.noise_switch.Position = [30 260 45 20];
+        
+            this.input_analysis_graph = uiaxes(switch_panel);
             this.input_analysis_graph.Position(4) = 250;
             this.input_analysis_graph.YLim = [0 1];
             
@@ -55,9 +66,21 @@ classdef NoiseSec < handle
             plot(noisy_pulse, x, y + noise);
             ylim(noisy_pulse, [min(y + noise) * 2 - 1, max(y + noise) * 2]);
             this.system.addNoise(event.Value);
-            plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);
-            this.input_analysis_graph.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
-            this.input_analysis_graph.YLim = [1.2 * min(this.system.currentVals) 1.2 * max(this.system.currentVals)];
+            if ~this.disabled_plot
+                plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);
+                this.input_analysis_graph.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
+                this.input_analysis_graph.YLim = [1.2 * min(this.system.currentVals) 1.2 * max(this.system.currentVals)];
+            end
+            
+        end
+
+        function onNoiseSwitchChanged(this, src, ~)
+            % Callback function for noise analysis switch
+            if strcmp(src.Value, 'On')
+                this.disabled_plot = false;
+            else
+                this.disabled_plot = true;
+            end
         end
     end
 end

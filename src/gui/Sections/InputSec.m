@@ -9,6 +9,8 @@ classdef InputSec < handle
         f_pulse % Access the frequency domain plot
         alpha_slider % Access the alpha slider
         alpha_value
+        input_switch % Access the input analysis switch
+        disabled_plot % Flag to disable plotting
     end
 
     methods
@@ -16,6 +18,7 @@ classdef InputSec < handle
             this.parent = panel;
             this.system = s;
             this.alpha_value = 1;
+            this.disabled_plot = true;
             g_i = uigridlayout(this.parent, [3 1]);
             g_i.RowHeight = {180, 130, '1x'};
             
@@ -140,6 +143,10 @@ classdef InputSec < handle
             input_analysis_panel.Layout.Column = 1;
             input_analysis_panel.Layout.Row = 3;
         
+            this.input_switch = uiswitch(input_mode_panel, 'slider', ...
+                'ValueChangedFcn', @(src, event) this.onInputSwitchChanged(src, event));
+            this.input_switch.Position(1:2) = [30 10];
+        
             this.input_analysis_graph = uiaxes(input_analysis_panel);
             this.input_analysis_graph.Position(4) = 250;
             this.input_analysis_graph.YLim = [0 1];
@@ -181,24 +188,27 @@ classdef InputSec < handle
                 if input_txt_area.Placeholder == "Enter message"
                     sys.ingest(text);
                 else 
-                    sys.input.generateRandomBin(str2double(text));
-                    sys.updateStream();
+                    len = str2double(text);
+                    sys.generateRandomInput(len);
+                    if len <= 50000
+                        input_txt_area.Value = string(sys.input.stream);
+                    end
                 end
                 
                 bin_stream = sys.input.stream;
 
                 if ~isempty(bin_stream)
-                    % this.updateDataLabels();
-                    this.refreshInputPlot();
-                    plot(this.input_analysis_graph, sys.t_vec, sys.currentVals);
-                    disp(this.input_analysis_graph.XLim);
-                    this.input_analysis_graph.XLim = [0 16 * sys.SAMPLING_INTERVAL];
-                    this.input_analysis_graph.YLim(2) = sys.multiplier;
+                    if ~this.disabled_plot
+                        this.refreshInputPlot();
+                        plot(this.input_analysis_graph, sys.t_vec, sys.currentVals);
+                        this.input_analysis_graph.XLim = [0 16 * sys.SAMPLING_INTERVAL];
+                        this.input_analysis_graph.YLim(2) = sys.multiplier;
+                    end
                     sys.shapeInput();
-                    hold(this.input_analysis_graph, 'on');
-                    plot(this.input_analysis_graph, sys.t_vec, sys.currentVals);
-                    %this.input_analysis_graph.YLim = [min(sys.currentVals)*2 max(sys.currentVals)*2];
-                    %this.input_analysis_graph.XLim = [0 System.SAMPLING_INTERVAL * (length(bin_stream) - 1)];
+                    if ~this.disabled_plot
+                        hold(this.input_analysis_graph, 'on');
+                        plot(this.input_analysis_graph, sys.t_vec, sys.currentVals);
+                    end
                 end
             end
         end
@@ -229,7 +239,9 @@ classdef InputSec < handle
         end
 
         function refreshInputPlot(this)
-            cla(this.input_analysis_graph);
+            if ~this.disabled_plot
+                cla(this.input_analysis_graph);
+            end
         end
 
         function changeMultiplier(this, src , ~)
@@ -240,6 +252,15 @@ classdef InputSec < handle
         function changeAlpha(this, ~, event)
             this.alpha_value = event.Value;
             this.redrawPulse();
+        end
+
+        function onInputSwitchChanged(this, src, ~)
+            % Callback function for input analysis switch
+            if strcmp(src.Value, 'On')
+                this.disabled_plot = false;
+            else
+                this.disabled_plot = true;
+            end
         end
     end
 end

@@ -33,7 +33,7 @@ classdef MainView < handle
             NoiseSec(n_sec, s);
             
             % Output section
-            OutputSec(out_sec, s)
+            OutputSec(out_sec, s);
             
             % Sample section
             SampleSec(sample_sec, s);

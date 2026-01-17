@@ -37,13 +37,6 @@ classdef Input < handle
             this.updateSize();
             fprintf(1,"Generated a random string of bits of length: %d\n", len);
         end
-
-        % modulation vs source coding?
-        % Implement BPSK and OOK
-        % Is OOK even needed when dealing with binary data?
-        function modulate(this)
-            this.stream = [];
-        end
     end
 
     methods (Access = private)

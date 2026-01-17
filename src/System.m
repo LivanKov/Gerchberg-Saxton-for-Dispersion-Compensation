@@ -62,6 +62,11 @@ classdef System < handle
             this.duplicatedVals = this.currentVals;
         end
 
+        function generateRandomInput(this, len)
+            this.input.generateRandomBin(len);
+            this.updateStream();
+        end
+
         function updateStream(this)
             in = this.input;
             this.rebuildTimeVec();

@@ -14,7 +14,6 @@
 classdef System < handle
     properties
         outputFilter OutputFilter
-        chromaticDispersion CD
         input
         Output
         currentVals; % current values output by the filter etc.
@@ -26,6 +25,7 @@ classdef System < handle
         multiplier
         sample_indices
         pulseShape Pulse
+        noisePower
     end
 
     properties(Constant)
@@ -49,6 +49,7 @@ classdef System < handle
             sysObj.outputFilter = o_f;
             sysObj.multiplier = 1;
             sysObj.pulseShape = Pulse.RECT;
+            sysObj.noisePower = 0;
         end
 
         function ingest(this, stream)
@@ -99,6 +100,7 @@ classdef System < handle
         end
 
         function addNoise(this, a)
+            this.noisePower = a;
             noise = randn(1, length(this.currentVals)) * sqrt(a);
             this.currentVals = this.duplicatedVals + noise;
         end
@@ -109,10 +111,6 @@ classdef System < handle
             end
             figure;
             plot(this.t_vec, this.currentVals);
-        end
-
-        function addCD(this)
-            this.currentVals = this.chromaticDispersion.input();
         end
 
         function out = sqrLawDetect(this)
@@ -149,9 +147,12 @@ classdef System < handle
             ber = (errors / totalBits) * 100;
         end
 
-        function plotBERGraph(this)
-            
-            
+        function [x, y] = plotBERGraph(~)
+            x = -10:0.2:10;
+            y = zeros(size(x));
+            for i = 1:length(x)
+                
+            end
         end
     end
 end

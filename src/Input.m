@@ -34,7 +34,7 @@ classdef Input < handle
         function generateRandomBin(this, len)
             this.stream = randi([0 1], 1, len);
             this.updateSize();
-            fprintf(1,"Generated a random string of bits of length: %d\n", len);
+            % fprintf(1,"Generated a random string of bits of length: %d\n", len);
         end
     end
 

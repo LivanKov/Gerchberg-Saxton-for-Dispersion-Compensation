@@ -33,7 +33,7 @@ classdef System < handle
         CHAN_LEN = 5;
         LIGHT = 3e8;    
         LAMBDA = 1550e-9; % Carrier wavelength, default value for an optical comms system  
-        TEST_LEN = 1000000;
+        TEST_LEN = 100000;
     end
 
     methods
@@ -146,18 +146,25 @@ classdef System < handle
             ber = (errors / totalBits) * 100;
         end
 
-        function [x, y] = plotBERGraph(~)
+        function [x,y] =  runBERTest(this)
             x = -10:0.5:18;
             y = zeros(size(x));
+            dt = 1/System.FS;
             sym_time_vec = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
             pulse = Pulse.GeneratePulse(sym_time_vec, this.pulseShape, this.multiplier);
             energy_per_symbol = trapz(sym_time_vec, abs(pulse).^2);
             for i = 1:length(x)
-                snr_lin = 10^(i/10);
+                snr_db = x(i);
+                snr_lin = 10^(snr_db/10);
                 required_noise = (energy_per_symbol / snr_lin) * (1/System.SAMPLING_INTERVAL);
-                result = runTest('length', System.TEST_LEN, 'noiseVariance', required_noise, 'bandpassPercentage', 90);
+                disp("Required noise: " + required_noise);
+                disp("Required linear snr: " + snr_lin);
+                disp("SNR_DB: " + snr_db);
+                fprintf(1,"\n");
+                result = this.runTest('length', System.TEST_LEN, 'noiseVariance', required_noise, 'bandpassPercentage', 90);
                 y(i) = result.ber/100;
             end
+            y = log10(y);
         end
 
         function clear(this)

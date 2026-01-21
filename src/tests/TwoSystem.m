@@ -1,10 +1,8 @@
 sys = System;
 % Test without filter
-results1 = sys.runTest('length', 400000, 'useBandpassFilter', false, 'verbose', false);
-
+results1 = sys.runTest('length', 1000000, 'useBandpassFilter', false);
 % Test with filter
-results2 = sys.runTest('length', 400000, 'useBandpassFilter', true, 'verbose', false);
-
+results2 = sys.runTest('length', 1000000, 'useBandpassFilter', true);
 % Compare manually
-disp(results1);
-disp(results2);
+disp(results1.ber);
+disp(results2.ber);

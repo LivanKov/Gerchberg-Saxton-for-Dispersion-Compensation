@@ -1,7 +1,7 @@
 %% Init
 s_raw = System;
 s_bandpass = System;
-len = 400000;
+len = 1000000;
 bandpass_percentage = 95;
 pulse = Pulse.SINC;
 s_raw.generateRandomInput(len);
@@ -16,7 +16,7 @@ s_bandpass.shapeInput();
 fprintf(1, "Inputs shaped\n");
 
 %% Add noise
-noise_var = 0.5;
+noise_var = 5;
 s_raw.addNoise(noise_var);
 s_bandpass.addNoise(noise_var);
 fprintf("Noise applied\n");

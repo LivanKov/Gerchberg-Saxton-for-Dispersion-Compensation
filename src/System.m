@@ -154,6 +154,8 @@ classdef System < handle
         end
 
         function clear(this)
+            % clear - Resets the system object to its initial state
+            % Clears all signal data, noise, and resets configuration to defaults
             this.currentVals = [];
             this.nonNoisyVals = [];
             this.duplicatedVals = [];
@@ -161,11 +163,14 @@ classdef System < handle
             this.sample_indices = [];
             this.noisePower = 0;
             this.pulseShape = Pulse.RECT;
+            this.multiplier = 1;
             this.input = Input;
+            this.outputFilter = OutputFilter;
         end
 
         function results = runTest(this, varargin)
-            % runTest - Performs a comprehensive BER test comparing filtered vs unfiltered systems
+            % runTest - Performs a comprehensive BER test comparing filtered vs unfiltered configurations
+            % Uses the current system object and resets it before and after the test
             %
             % Syntax: results = system.runTest('Name', Value, ...)
             %
@@ -183,6 +188,11 @@ classdef System < handle
             %       .snr - Signal-to-noise ratio (linear)
             %       .snr_db - Signal-to-noise ratio (dB)
             %       .bandpass_percentage - Filter bandwidth used
+            %       .improvement - BER improvement with filter (%)
+            
+            % Clear system state before starting the test
+            % This ensures a clean slate and prevents interference from previous operations
+            this.clear();
             
             % Parse input arguments using name-value pairs
             p = inputParser;
@@ -200,62 +210,61 @@ classdef System < handle
             noise_var = p.Results.noiseVariance;
             verbose = p.Results.verbose;
             
-            % Create two independent System objects for comparison:
-            % s_raw: system without bandpass filtering (baseline)
-            % s_bandpass: system with bandpass filtering (to test filter effectiveness)
-            s_raw = System;
-            s_bandpass = System;
+            % Configure system parameters
+            this.pulseShape = pulse;
+            this.outputFilter.areaCovered = bandpass_percentage;
             
-            % Generate identical random binary input sequences for both systems
-            % This ensures a fair comparison by using the same data
-            s_raw.generateRandomInput(len);
-            s_bandpass.input.stream = s_raw.input.stream; % Copy same input
-            s_bandpass.updateStream(); % Update internal state
-            
-            % Configure bandpass filter parameters for both systems
-            % areaCovered determines what percentage of the frequency spectrum is preserved
-            s_raw.outputFilter.areaCovered = bandpass_percentage;
-            s_bandpass.outputFilter.areaCovered = bandpass_percentage;
+            % Generate random binary input sequence
+            this.generateRandomInput(len);
             
             if verbose
                 fprintf(1, "Random inputs generated (%d bits)\n", len);
             end
             
-            % Set pulse shape for both systems (e.g., SINC, RECT, RRC)
-            % The pulse shape affects spectral efficiency and ISI
-            s_raw.pulseShape = pulse;
-            s_bandpass.pulseShape = pulse;
-            
-            % Shape the input signals by convolving with the selected pulse
+            % Shape the input signal by convolving with the selected pulse
             % This converts discrete symbols to continuous-time waveforms
-            s_raw.shapeInput();
-            s_bandpass.shapeInput();
+            this.shapeInput();
             
             if verbose
                 fprintf(1, "Inputs shaped with pulse type\n");
             end
             
-            % Add Gaussian white noise with specified variance to both systems
+            % Store the clean shaped signal for later comparison
+            % We need this to test both filtered and unfiltered cases
+            clean_signal = this.nonNoisyVals;
+            clean_duplicated = this.duplicatedVals;
+            
+            % Test 1: WITHOUT bandpass filter (baseline performance)
+            % Add Gaussian white noise with specified variance
             % Models channel impairments and thermal noise in real systems
-            s_raw.addNoise(noise_var);
-            s_bandpass.addNoise(noise_var);
+            this.addNoise(noise_var);
             
             if verbose
                 fprintf("Noise applied (variance: %.2f)\n", noise_var);
             end
             
-            % Apply bandpass filter ONLY to s_bandpass system
+            % Sample at symbol intervals and calculate BER
+            % BER (Bit Error Rate) = (Number of bit errors / Total bits) × 100%
+            [ber_raw, ~] = this.sampleInput();
+            
+            % Test 2: WITH bandpass filter (to test filter effectiveness)
+            % Restore the clean signal state before applying noise again
+            this.nonNoisyVals = clean_signal;
+            this.duplicatedVals = clean_duplicated;
+            
+            % Apply noise again (fresh noise realization for fair comparison)
+            this.addNoise(noise_var);
+            
+            % Apply bandpass filter to the noisy signal
             % This is the key difference: testing if filtering improves BER
-            s_bandpass.applyOutputFilter();
+            this.applyOutputFilter();
             
             if verbose
-                fprintf("Filter applied to bandpass system\n");
+                fprintf("Filter applied\n");
             end
             
-            % Sample both systems at symbol intervals and calculate BER
-            % BER (Bit Error Rate) = (Number of bit errors / Total bits) × 100%
-            [ber_raw, ~] = s_raw.sampleInput();
-            [ber_bandpass, ~] = s_bandpass.sampleInput();
+            % Sample the filtered signal and calculate BER
+            [ber_bandpass, ~] = this.sampleInput();
             
             % Calculate Signal-to-Noise Ratio (SNR)
             % SNR quantifies the quality of the received signal
@@ -263,18 +272,18 @@ classdef System < handle
             sym_time_vec = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
             
             % Generate reference pulse and calculate its energy
-            y = Pulse.GeneratePulse(sym_time_vec, pulse, s_raw.multiplier);
+            y = Pulse.GeneratePulse(sym_time_vec, pulse, this.multiplier);
             energy_per_symbol = trapz(sym_time_vec, abs(y).^2); % Numerical integration
             
             % SNR = Signal Energy / Noise Power (normalized by symbol period)
-            snr = energy_per_symbol / (s_raw.noisePower / (1/System.SAMPLING_INTERVAL));
+            snr = energy_per_symbol / (this.noisePower / (1/System.SAMPLING_INTERVAL));
             snr_db = 10 * log10(snr); % Convert to decibels
             
             % Display results if verbose mode is enabled
             if verbose
                 fprintf("\n========== Test Results ==========\n");
                 fprintf("SNR: %.4f (%.4f dB)\n", snr, snr_db);
-                fprintf("Bandpass filter coverage: %.2f%%\n", s_raw.outputFilter.areaCovered);
+                fprintf("Bandpass filter coverage: %.2f%%\n", this.outputFilter.areaCovered);
                 fprintf("BER without filter: %.4f%%\n", ber_raw);
                 fprintf("BER with filter: %.4f%%\n", ber_bandpass);
                 fprintf("BER improvement: %.4f%%\n", ber_raw - ber_bandpass);
@@ -288,6 +297,10 @@ classdef System < handle
             results.snr_db = snr_db;
             results.bandpass_percentage = bandpass_percentage;
             results.improvement = ber_raw - ber_bandpass;
+            
+            % Clear system state after the test
+            % This ensures the system is clean for subsequent operations
+            this.clear();
         end
     end
 end

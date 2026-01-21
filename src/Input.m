@@ -3,7 +3,6 @@ classdef Input < handle
          mod_mode 
          stream int8
          size (1, 2) int8
-         path char
     end
 
     methods

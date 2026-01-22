@@ -24,6 +24,7 @@ classdef System < handle
         sample_indices
         pulseShape Pulse
         noisePower
+        filterPreBuilt
     end
 
     properties(Constant)
@@ -49,6 +50,7 @@ classdef System < handle
             sysObj.multiplier = 1;
             sysObj.pulseShape = Pulse.RECT;
             sysObj.noisePower = 0;
+            sysObj.filterPreBuilt = false;
         end
 
         function ingest(this, stream)
@@ -146,13 +148,39 @@ classdef System < handle
             ber = (errors / totalBits) * 100;
         end
 
-        function [x,y] =  runBERTest(this)
+        function [x,y] =  runBERTest(this, varargin)
+            % runBERTest - Performs a BER test across multiple SNR values
+            %
+            % Syntax: [x, y] = system.runBERTest('Name', Value, ...)
+            %
+            % Optional Parameters:
+            %   'length' - Number of bits to generate (default: TEST_LEN)
+            %   'bandpassPercentage' - Percentage of spectrum to preserve (default: 90)
+            %   'pulseShape' - Pulse shape to use (default: Pulse.RECT)
+            %   'useBandpassFilter' - Whether to apply bandpass filter (default: false)
+            %
+            % Returns:
+            %   x - SNR values in dB
+            %   y - Log10 of BER values
+            
+            p = inputParser;
+            addParameter(p, 'length', System.TEST_LEN, @isnumeric);
+            addParameter(p, 'bandpassPercentage', 90, @isnumeric);
+            addParameter(p, 'pulseShape', Pulse.SINC);
+            addParameter(p, 'useBandpassFilter', true, @islogical);
+            parse(p, varargin{:});
+            
+            len = p.Results.length;
+            bandpass_percentage = p.Results.bandpassPercentage;
+            pulse = p.Results.pulseShape;
+            use_filter = p.Results.useBandpassFilter;
+            
             x = -10:0.5:18;
             y = zeros(size(x));
             dt = 1/System.FS;
             sym_time_vec = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
-            pulse = Pulse.GeneratePulse(sym_time_vec, this.pulseShape, this.multiplier);
-            energy_per_symbol = trapz(sym_time_vec, abs(pulse).^2);
+            pulse_waveform = Pulse.GeneratePulse(sym_time_vec, pulse, this.multiplier);
+            energy_per_symbol = trapz(sym_time_vec, abs(pulse_waveform).^2);
             for i = 1:length(x)
                 snr_db = x(i);
                 snr_lin = 10^(snr_db/10);
@@ -161,7 +189,9 @@ classdef System < handle
                 disp("Required linear snr: " + snr_lin);
                 disp("SNR_DB: " + snr_db);
                 fprintf(1,"\n");
-                result = this.runTest('length', System.TEST_LEN, 'noiseVariance', required_noise, 'bandpassPercentage', 90);
+                result = this.runTest('length', len, 'noiseVariance', required_noise, ...
+                    'bandpassPercentage', bandpass_percentage, 'pulseShape', pulse, ...
+                    'useBandpassFilter', use_filter);
                 y(i) = result.ber/100;
             end
             y = log10(y);
@@ -209,7 +239,7 @@ classdef System < handle
             addParameter(p, 'bandpassPercentage', 95, @isnumeric);
             addParameter(p, 'pulseShape', Pulse.SINC);
             addParameter(p, 'noiseVariance', 0.5, @isnumeric);
-            addParameter(p, 'useBandpassFilter', false, @islogical);
+            addParameter(p, 'useBandpassFilter', true, @islogical);
             parse(p, varargin{:});
             
             len = p.Results.length;

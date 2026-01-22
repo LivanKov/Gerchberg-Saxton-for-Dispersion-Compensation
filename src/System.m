@@ -93,12 +93,25 @@ classdef System < handle
         function applyOutputFilter(this)
             N = length(this.t_vec);
             f = (-(N/2):(N/2-1)) * System.FS/N;
-            no_noise_spec = fftshift(fft(this.nonNoisyVals));
-            designed_filt = this.outputFilter.construct(f, no_noise_spec);
+            
+            if ~this.filterPreBuilt
+                % Construct and cache the filter on first run
+                no_noise_spec = fftshift(fft(this.nonNoisyVals));
+                this.filter = this.outputFilter.construct(f, no_noise_spec);
+                this.filterPreBuilt = true;
+                disp("No filter");
+            end
+            
+            % Apply the cached filter
             noise_sig_mag = fftshift(fft(this.currentVals));
-            filtered_spec = designed_filt .* noise_sig_mag;
+            filtered_spec = this.filter .* noise_sig_mag;
             x = ifft(ifftshift(filtered_spec));
             this.currentVals = abs(x);
+        end
+
+        function resetFilter(this)
+            this.filterPreBuilt = false;
+            this.filter = [];
         end
 
         function addNoise(this, a)
@@ -217,6 +230,7 @@ classdef System < handle
             this.input = Input;
             this.outputFilter = OutputFilter;
             this.filterPreBuilt = false;
+            this.filter = [];
         end
 
         function results = runTest(this, varargin)
@@ -240,7 +254,7 @@ classdef System < handle
             %       .snr_db - Signal-to-noise ratio (dB)
             %       .bandpass_percentage - Filter bandwidth used
             %       .filter_applied - Boolean indicating if filter was used
-            this.clear();
+            % this.clear();
             
             p = inputParser;
             addParameter(p, 'inputStream', [], @(x) isempty(x) || isnumeric(x));
@@ -283,7 +297,7 @@ classdef System < handle
             results.snr_db = snr_db;
             results.bandpass_percentage = bandpass_percentage;
             results.filter_applied = use_filter;
-            this.clear();
+            % this.clear();
         end
     end
 end

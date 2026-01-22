@@ -25,6 +25,7 @@ classdef System < handle
         pulseShape Pulse
         noisePower
         filterPreBuilt
+        filter
     end
 
     properties(Constant)
@@ -175,6 +176,11 @@ classdef System < handle
             pulse = p.Results.pulseShape;
             use_filter = p.Results.useBandpassFilter;
             
+            % Generate random input once for consistent testing across all SNR values
+            temp_input = Input;
+            temp_input.generateRandomBin(len);
+            test_stream = temp_input.stream;
+            
             x = -10:0.5:18;
             y = zeros(size(x));
             dt = 1/System.FS;
@@ -189,7 +195,7 @@ classdef System < handle
                 disp("Required linear snr: " + snr_lin);
                 disp("SNR_DB: " + snr_db);
                 fprintf(1,"\n");
-                result = this.runTest('length', len, 'noiseVariance', required_noise, ...
+                result = this.runTest('inputStream', test_stream, 'noiseVariance', required_noise, ...
                     'bandpassPercentage', bandpass_percentage, 'pulseShape', pulse, ...
                     'useBandpassFilter', use_filter);
                 y(i) = result.ber/100;
@@ -210,6 +216,7 @@ classdef System < handle
             this.multiplier = 1;
             this.input = Input;
             this.outputFilter = OutputFilter;
+            this.filterPreBuilt = false;
         end
 
         function results = runTest(this, varargin)
@@ -219,7 +226,8 @@ classdef System < handle
             % Syntax: results = system.runTest('Name', Value, ...)
             %
             % Optional Parameters:
-            %   'length' - Number of bits to generate (default: 400000)
+            %   'inputStream' - Pre-generated input bit stream (default: [])
+            %   'length' - Number of bits to generate if no inputStream (default: 400000)
             %   'bandpassPercentage' - Percentage of spectrum to preserve (default: 95)
             %   'pulseShape' - Pulse shape to use (default: Pulse.SINC)
             %   'noiseVariance' - Variance of additive noise (default: 0.5)
@@ -235,6 +243,7 @@ classdef System < handle
             this.clear();
             
             p = inputParser;
+            addParameter(p, 'inputStream', [], @(x) isempty(x) || isnumeric(x));
             addParameter(p, 'length', 400000, @isnumeric);
             addParameter(p, 'bandpassPercentage', 95, @isnumeric);
             addParameter(p, 'pulseShape', Pulse.SINC);
@@ -242,6 +251,7 @@ classdef System < handle
             addParameter(p, 'useBandpassFilter', true, @islogical);
             parse(p, varargin{:});
             
+            input_stream = p.Results.inputStream;
             len = p.Results.length;
             bandpass_percentage = p.Results.bandpassPercentage;
             pulse = p.Results.pulseShape;
@@ -250,7 +260,11 @@ classdef System < handle
             this.pulseShape = pulse;
             
             this.outputFilter.areaCovered = bandpass_percentage;
-            this.generateRandomInput(len);
+            if isempty(input_stream)
+                this.generateRandomInput(len);
+            else
+                this.ingest(input_stream);
+            end
             this.shapeInput();
             this.addNoise(noise_var);
             

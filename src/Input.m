@@ -12,8 +12,20 @@ classdef Input < handle
         end
 
         function readInput(this, input)
+            % Check if input is numeric (vector of 0s and 1s)
+            if isnumeric(input)
+                % Validate that all values are 0 or 1
+                if ~all(input == 0 | input == 1)
+                    fprintf(2, "Error: Numeric input must contain only 0s and 1s\n");
+                    return;
+                end
+                this.stream = int8(input);
+                return;
+            end
+            
+            % Handle string/char input
             if (~isa(input, 'string') & ~isa(input, 'char'))
-                fprintf(2, "Error: StrToBin only accepts char and string types as input\n");
+                fprintf(2, "Error: readInput accepts numeric vectors, char, or string types as input\n");
                 return;
             end 
         
@@ -28,20 +40,11 @@ classdef Input < handle
                 return
             end
             this.stream = input - '0'; 
-            this.updateSize();
         end
 
         function generateRandomBin(this, len)
             this.stream = randi([0 1], 1, len);
-            this.updateSize();
             % fprintf(1,"Generated a random string of bits of length: %d\n", len);
-        end
-    end
-
-    methods (Access = private)
-        function updateSize(this)
-            this.size(1) = length(this.stream);
-            this.size(2) = length(this.stream)/8;
         end
     end
 end

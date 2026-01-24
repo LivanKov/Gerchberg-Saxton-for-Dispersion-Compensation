@@ -26,6 +26,7 @@ classdef System < handle
         noisePower
         filterPreBuilt
         filter
+        alpha
     end
 
     properties(Constant)
@@ -39,19 +40,20 @@ classdef System < handle
     end
 
     methods
-        function sysObj = System(input)
+        function this = System(input)
             if nargin == 1
-                sysObj.input = input;
+                this.input = input;
             else
                 i = Input;
-                sysObj.input = i;
+                this.input = i;
             end
             o_f = OutputFilter;
-            sysObj.outputFilter = o_f;
-            sysObj.multiplier = 1;
-            sysObj.pulseShape = Pulse.RECT;
-            sysObj.noisePower = 0;
-            sysObj.filterPreBuilt = false;
+            this.outputFilter = o_f;
+            this.multiplier = 1;
+            this.pulseShape = Pulse.RECT;
+            this.noisePower = 0;
+            this.filterPreBuilt = false;
+            this.alpha = 0.5;
         end
 
         function ingest(this, stream)
@@ -83,7 +85,7 @@ classdef System < handle
         function shapeInput(this)
             dt = 1/System.FS;
             sym_time_vec = -System.SAMP_TIME:dt:System.SAMP_TIME;
-            pulse = Pulse.GeneratePulse(sym_time_vec, this.pulseShape, this.multiplier);
+            pulse = Pulse.GeneratePulse(sym_time_vec, this.pulseShape, this.multiplier, this.alpha);
             out = conv(this.currentVals, pulse, 'same');
             this.currentVals = out;
             this.duplicatedVals = this.currentVals;
@@ -183,7 +185,7 @@ classdef System < handle
             y = zeros(size(x));
             dt = 1/System.FS;
             sym_time_vec = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
-            pulse_waveform = Pulse.GeneratePulse(sym_time_vec, pulse, this.multiplier);
+            pulse_waveform = Pulse.GeneratePulse(sym_time_vec, pulse, this.multiplier, this.alpha);
             energy_per_symbol = trapz(sym_time_vec, abs(pulse_waveform).^2);
             for i = 1:length(x)
                 snr_db = x(i);
@@ -252,7 +254,7 @@ classdef System < handle
             [ber, ~] = this.sampleInput();
             dt = 1/System.FS;
             sym_time_vec = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
-            y = Pulse.GeneratePulse(sym_time_vec, pulse, this.multiplier);
+            y = Pulse.GeneratePulse(sym_time_vec, pulse, this.multiplier, this.alpha);
             energy_per_symbol = trapz(sym_time_vec, abs(y).^2);
             snr = energy_per_symbol / (this.noisePower / (1/System.SAMPLING_INTERVAL));
             snr_db = 10 * log10(snr);

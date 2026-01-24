@@ -8,7 +8,6 @@ classdef InputSec < handle
         pulse_plot % Access the single pulse plot
         f_pulse % Access the frequency domain plot
         alpha_slider % Access the alpha slider
-        alpha_value
         input_switch % Access the input analysis switch
         disabled_plot % Flag to disable plotting
     end
@@ -17,7 +16,6 @@ classdef InputSec < handle
         function this = InputSec(panel, s)
             this.parent = panel;
             this.system = s;
-            this.alpha_value = 1;
             this.disabled_plot = true;
             g_i = uigridlayout(this.parent, [3 1]);
             g_i.RowHeight = {180, 130, '1x'};
@@ -31,7 +29,7 @@ classdef InputSec < handle
             
             x = -System.SAMP_TIME:1/System.FS:System.SAMP_TIME;
             p_s = s.pulseShape;
-            y = Pulse.GeneratePulse(x, p_s, s.multiplier, this.alpha_value);
+            y = Pulse.GeneratePulse(x, p_s, s.multiplier, s.alpha);
             this.pulse_plot = uiaxes(g_i1);
             this.f_pulse = uiaxes(g_i1);
         
@@ -69,7 +67,7 @@ classdef InputSec < handle
             this.alpha_slider = uislider(dd_panel, ...
                 'ValueChangedFcn', @(src,event) this.changeAlpha(src, event));
             this.alpha_slider.Limits = [0 1];
-            this.alpha_slider.Value = 1;
+            this.alpha_slider.Value = this.system.alpha;
             this.alpha_slider.Position = [8 40 100 3];
             this.alpha_slider.Enable = 'off';
             
@@ -160,7 +158,7 @@ classdef InputSec < handle
         function redrawPulse(this)
             p_s = this.system.pulseShape;
             x = -System.SAMP_TIME:1/System.FS:System.SAMP_TIME;
-            y = Pulse.GeneratePulse(x, p_s, this.system.multiplier, this.alpha_value);
+            y = Pulse.GeneratePulse(x, p_s, this.system.multiplier, this.system.alpha);
             plot(this.pulse_plot,x, y);
             this.pulse_plot.YLim = [2*min(y) 2*max(y)];
             y_fft = fftshift(fft(y));
@@ -250,7 +248,7 @@ classdef InputSec < handle
         end
 
         function changeAlpha(this, ~, event)
-            this.alpha_value = event.Value;
+            this.system.alpha = event.Value;
             this.redrawPulse();
         end
 

@@ -17,15 +17,15 @@ classdef Pulse
                 case Pulse.COS_SQR
                     pulse = Pulse.CosSqr(input, 1, System.SAMPLING_INTERVAL);
                 case Pulse.RCOS
-                    pulse = Pulse.RCos(input/System.SAMPLING_INTERVAL, alpha);
+                    pulse = Pulse.RCos(input/(System.SAMPLING_INTERVAL/2), alpha);
                 case Pulse.RRCOS
-                    pulse = Pulse.RRCos(input/System.SAMPLING_INTERVAL, alpha);
+                    pulse = Pulse.RRCos(input/(System.SAMPLING_INTERVAL/2), alpha);
                 case Pulse.SINC
                     pulse = Pulse.Sinc(input/(System.SAMPLING_INTERVAL/2));
                 case Pulse.MANCHESTER
                     pulse = Pulse.Manchester(input/System.SAMPLING_INTERVAL);
                 case Pulse.GAUS
-                    pulse = Pulse.Gaus(input, 1, System.SAMPLING_INTERVAL);
+                    pulse = Pulse.Gaus(input, 1, System.SAMPLING_INTERVAL/2);
                 otherwise 
                     pulse = Pulse.RectPulse(input, 1, 0, 1);
             end

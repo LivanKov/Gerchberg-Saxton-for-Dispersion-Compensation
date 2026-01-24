@@ -24,10 +24,8 @@ k = 1;
 while k < Maxiter
     X = fft(x)/N;
     Y = F.*exp(1i*angle(X));
-
     y = N * ifft(Y);
     x = f.*exp(1i*angle(y));
-    
     k = k + 1;
 end
 

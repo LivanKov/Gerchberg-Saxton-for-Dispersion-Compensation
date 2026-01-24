@@ -35,7 +35,7 @@ classdef System < handle
         CHAN_LEN = 5;
         LIGHT = 3e8;    
         LAMBDA = 1550e-9; % Carrier wavelength, default value for an optical comms system  
-        TEST_LEN = 100000;
+        TEST_LEN = 400000;
     end
 
     methods
@@ -163,33 +163,18 @@ classdef System < handle
         end
 
         function [x,y] =  runBERTest(this, varargin)
-            % runBERTest - Performs a BER test across multiple SNR values
-            %
-            % Syntax: [x, y] = system.runBERTest('Name', Value, ...)
-            %
-            % Optional Parameters:
-            %   'length' - Number of bits to generate (default: TEST_LEN)
-            %   'bandpassPercentage' - Percentage of spectrum to preserve (default: 90)
-            %   'pulseShape' - Pulse shape to use (default: Pulse.RECT)
-            %   'useBandpassFilter' - Whether to apply bandpass filter (default: false)
-            %
-            % Returns:
-            %   x - SNR values in dB
-            %   y - Log10 of BER values
-            
             p = inputParser;
             addParameter(p, 'length', System.TEST_LEN, @isnumeric);
-            addParameter(p, 'bandpassPercentage', 90, @isnumeric);
+            addParameter(p, 'lowpassPercentage', 90, @isnumeric);
             addParameter(p, 'pulseShape', Pulse.SINC);
-            addParameter(p, 'useBandpassFilter', true, @islogical);
+            addParameter(p, 'useLowpassFilter', true, @islogical);
             parse(p, varargin{:});
             
             len = p.Results.length;
-            bandpass_percentage = p.Results.bandpassPercentage;
+            lowpass_percentage = p.Results.lowpassPercentage;
             pulse = p.Results.pulseShape;
-            use_filter = p.Results.useBandpassFilter;
+            use_filter = p.Results.useLowpassFilter;
             
-            % Generate random input once for consistent testing across all SNR values
             temp_input = Input;
             temp_input.generateRandomBin(len);
             test_stream = temp_input.stream;
@@ -209,10 +194,11 @@ classdef System < handle
                 disp("SNR_DB: " + snr_db);
                 fprintf(1,"\n");
                 result = this.runTest('inputStream', test_stream, 'noiseVariance', required_noise, ...
-                    'bandpassPercentage', bandpass_percentage, 'pulseShape', pulse, ...
-                    'useBandpassFilter', use_filter);
+                    'lowpassPercentage', lowpass_percentage, 'pulseShape', pulse, ...
+                    'useLowpassFilter', use_filter);
                 y(i) = result.ber/100;
             end
+            this.clear();
             y = log10(y);
         end
 
@@ -233,47 +219,25 @@ classdef System < handle
             this.filter = [];
         end
 
-        function results = runTest(this, varargin)
-            % runTest - Performs a BER test on the communication system
-            % Uses the current system object and resets it before and after the test
-            %
-            % Syntax: results = system.runTest('Name', Value, ...)
-            %
-            % Optional Parameters:
-            %   'inputStream' - Pre-generated input bit stream (default: [])
-            %   'length' - Number of bits to generate if no inputStream (default: 400000)
-            %   'bandpassPercentage' - Percentage of spectrum to preserve (default: 95)
-            %   'pulseShape' - Pulse shape to use (default: Pulse.SINC)
-            %   'noiseVariance' - Variance of additive noise (default: 0.5)
-            %   'useBandpassFilter' - Whether to apply bandpass filter (default: false)
-            %
-            % Returns:
-            %   results - Structure containing:
-            %       .ber - Bit error rate (%)
-            %       .snr - Signal-to-noise ratio (linear)
-            %       .snr_db - Signal-to-noise ratio (dB)
-            %       .bandpass_percentage - Filter bandwidth used
-            %       .filter_applied - Boolean indicating if filter was used
-            % this.clear();
-            
+        function results = runTest(this, varargin) 
             p = inputParser;
             addParameter(p, 'inputStream', [], @(x) isempty(x) || isnumeric(x));
             addParameter(p, 'length', 400000, @isnumeric);
-            addParameter(p, 'bandpassPercentage', 95, @isnumeric);
+            addParameter(p, 'lowpassPercentage', 90, @isnumeric);
             addParameter(p, 'pulseShape', Pulse.SINC);
             addParameter(p, 'noiseVariance', 0.5, @isnumeric);
-            addParameter(p, 'useBandpassFilter', true, @islogical);
+            addParameter(p, 'useLowpassFilter', true, @islogical);
             parse(p, varargin{:});
             
             input_stream = p.Results.inputStream;
             len = p.Results.length;
-            bandpass_percentage = p.Results.bandpassPercentage;
+            lowpass_percentage = p.Results.lowpassPercentage;
             pulse = p.Results.pulseShape;
             noise_var = p.Results.noiseVariance;
-            use_filter = p.Results.useBandpassFilter;
+            use_filter = p.Results.useLowpassFilter;
             this.pulseShape = pulse;
             
-            this.outputFilter.areaCovered = bandpass_percentage;
+            this.outputFilter.areaCovered = lowpass_percentage;
             if isempty(input_stream)
                 this.generateRandomInput(len);
             else
@@ -286,18 +250,17 @@ classdef System < handle
                 this.applyOutputFilter();
             end
             [ber, ~] = this.sampleInput();
-            dt = 1/System.FS; % Time step based on sampling frequency
+            dt = 1/System.FS;
             sym_time_vec = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
             y = Pulse.GeneratePulse(sym_time_vec, pulse, this.multiplier);
             energy_per_symbol = trapz(sym_time_vec, abs(y).^2);
             snr = energy_per_symbol / (this.noisePower / (1/System.SAMPLING_INTERVAL));
-            snr_db = 10 * log10(snr); % Convert to decibels for easier interpretation
+            snr_db = 10 * log10(snr);
             results.ber = ber;
             results.snr = snr;
             results.snr_db = snr_db;
-            results.bandpass_percentage = bandpass_percentage;
+            results.lowpass_percentage = lowpass_percentage;
             results.filter_applied = use_filter;
-            % this.clear();
         end
     end
 end

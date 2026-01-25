@@ -27,13 +27,12 @@ classdef System < handle
         filterPreBuilt
         filter
         alpha
-    end
 
-    properties(Constant)
+
         SAMPLING_INTERVAL = 10e-12; % length of a single pulse
         SAMP_TIME = 200e-12;
         FS = 3000e9;
-        CHAN_LEN = 5;
+        CHAN_LEN = 20;
         LIGHT = 3e8;    
         LAMBDA = 1550e-9; % Carrier wavelength, default value for an optical comms system  
         TEST_LEN = 400000;
@@ -61,7 +60,7 @@ classdef System < handle
             in.readInput(stream);
             this.rebuildTimeVec();
             [vals, indices] = Pulse.Dirac(this.t_vec, in.stream, ...
-                System.SAMPLING_INTERVAL);
+                this.SAMPLING_INTERVAL);
             this.currentVals = this.multiplier * vals;
             this.sample_indices = indices;
             this.duplicatedVals = this.currentVals;
@@ -76,16 +75,16 @@ classdef System < handle
             in = this.input;
             this.rebuildTimeVec();
             [vals, indices] = Pulse.Dirac(this.t_vec, in.stream, ...
-                System.SAMPLING_INTERVAL);
+                this.SAMPLING_INTERVAL);
             this.currentVals = this.multiplier * vals;
             this.sample_indices = indices;
             this.duplicatedVals = this.currentVals;
         end
 
         function shapeInput(this)
-            dt = 1/System.FS;
-            sym_time_vec = -System.SAMP_TIME:dt:System.SAMP_TIME;
-            pulse = Pulse.GeneratePulse(sym_time_vec, this.pulseShape, this.multiplier, this.alpha);
+            dt = 1/this.FS;
+            sym_time_vec = -this.SAMP_TIME:dt:this.SAMP_TIME;
+            pulse = Pulse.GeneratePulse(sym_time_vec, this);
             out = conv(this.currentVals, pulse, 'same');
             this.currentVals = out;
             this.duplicatedVals = this.currentVals;
@@ -94,7 +93,7 @@ classdef System < handle
 
         function applyOutputFilter(this)
             N = length(this.t_vec);
-            f = (-(N/2):(N/2-1)) * System.FS/N;
+            f = (-(N/2):(N/2-1)) * this.FS/N;
             
             if ~this.filterPreBuilt
                 % Construct and cache the filter on first run
@@ -126,7 +125,6 @@ classdef System < handle
             if isempty(this.t_vec) || isempty(this.currentVals)
                 return
             end
-            figure;
             plot(this.t_vec, this.currentVals);
         end
 
@@ -135,24 +133,24 @@ classdef System < handle
         end
 
         function rebuildTimeVec(this)
-            dt = 1/System.FS;
-            len = System.SAMP_TIME + System.SAMPLING_INTERVAL * length(this.input.stream);
+            dt = 1/this.FS;
+            len = this.SAMP_TIME + this.SAMPLING_INTERVAL * length(this.input.stream);
             this.t_vec = -len:dt:len;
         end
 
         function applyChromaticDispersion(this)
             D = 17;
-            beta2 = -(System.LAMBDA^2 / (2*pi*System.LIGHT)) * (D * 1e-3);
-            N = length(this.currentVals);
-            U0 = fftshift(fft(this.currentVals));
-            f = (-((N-1)/2):(N/2)) * System.FS/N * 2*pi;
-            H = exp(1i * (beta2/2) * f.^2 * System.CHAN_LEN); 
+            beta2 = -(this.LAMBDA^2 / (2*pi*this.LIGHT)) * (D * 1e-3);
+            N = length(this.duplicatedVals);
+            U0 = fftshift(fft(this.duplicatedVals));
+            f = (-((N-1)/2):(N/2)) * this.FS/N * 2*pi;
+            H = exp(1i * (beta2/2) * f.^2 * this.CHAN_LEN); 
             U_out = U0 .* H;
             this.currentVals = abs(ifft(ifftshift(U_out)));
         end
 
         function applySquareLaw(this)
-            this.currentVals = this.currentVals .^ 2;
+            this.currentVals = (abs(this.currentVals)) .^ 2;
         end
 
         function [ber, sampledValues] = sampleInput(this)
@@ -166,7 +164,7 @@ classdef System < handle
 
         function [x,y] =  runBERTest(this, varargin)
             p = inputParser;
-            addParameter(p, 'length', System.TEST_LEN, @isnumeric);
+            addParameter(p, 'length', this.TEST_LEN, @isnumeric);
             addParameter(p, 'lowpassPercentage', 90, @isnumeric);
             addParameter(p, 'pulseShape', Pulse.SINC);
             addParameter(p, 'useLowpassFilter', true, @islogical);
@@ -183,14 +181,14 @@ classdef System < handle
             
             x = -10:0.5:18;
             y = zeros(size(x));
-            dt = 1/System.FS;
-            sym_time_vec = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
-            pulse_waveform = Pulse.GeneratePulse(sym_time_vec, pulse, this.multiplier, this.alpha);
+            dt = 1/this.FS;
+            sym_time_vec = -this.SAMPLING_INTERVAL:dt:this.SAMPLING_INTERVAL;
+            pulse_waveform = Pulse.GeneratePulse(sym_time_vec, this);
             energy_per_symbol = trapz(sym_time_vec, abs(pulse_waveform).^2);
             for i = 1:length(x)
                 snr_db = x(i);
                 snr_lin = 10^(snr_db/10);
-                required_noise = (energy_per_symbol / snr_lin) * (1/System.SAMPLING_INTERVAL);
+                required_noise = (energy_per_symbol / snr_lin) * (1/this.SAMPLING_INTERVAL);
                 disp("Required noise: " + required_noise);
                 disp("Required linear snr: " + snr_lin);
                 disp("SNR_DB: " + snr_db);
@@ -252,11 +250,11 @@ classdef System < handle
                 this.applyOutputFilter();
             end
             [ber, ~] = this.sampleInput();
-            dt = 1/System.FS;
-            sym_time_vec = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
-            y = Pulse.GeneratePulse(sym_time_vec, pulse, this.multiplier, this.alpha);
+            dt = 1/this.FS;
+            sym_time_vec = -this.SAMPLING_INTERVAL:dt:this.SAMPLING_INTERVAL;
+            y = Pulse.GeneratePulse(sym_time_vec, this);
             energy_per_symbol = trapz(sym_time_vec, abs(y).^2);
-            snr = energy_per_symbol / (this.noisePower / (1/System.SAMPLING_INTERVAL));
+            snr = energy_per_symbol / (this.noisePower / (1/this.SAMPLING_INTERVAL));
             snr_db = 10 * log10(snr);
             results.ber = ber;
             results.snr = snr;

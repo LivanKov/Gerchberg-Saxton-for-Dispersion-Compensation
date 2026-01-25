@@ -26,11 +26,11 @@ fprintf("Filter applied\n");
 %% Sample
 [ber_raw, ~ ] = s_raw.sampleInput();
 [ber_lowpass, ~] = s_lowpass.sampleInput();
-dt = 1/System.FS;
-sym_time_vec = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
-y = Pulse.GeneratePulse(sym_time_vec, pulse, s_raw.multiplier);
+dt = 1/s_raw.FS;
+sym_time_vec = -s_raw.SAMPLING_INTERVAL:dt:s_raw.SAMPLING_INTERVAL;
+y = Pulse.GeneratePulse(sym_time_vec, s_raw);
 energy_per_symbol = trapz(sym_time_vec, abs(y).^2);
-snr = energy_per_symbol / (s_raw.noisePower / (1/System.SAMPLING_INTERVAL));
+snr = energy_per_symbol / (s_raw.noisePower / (1/s_raw.SAMPLING_INTERVAL));
 snr_db = 10 * log10(snr);
 fprintf("SNR: %.4f; SNR(dB): %.4f\n", snr, snr_db);
 fprintf(1, "Lowpass filter percentage %.2f%%\n", s_raw.outputFilter.areaCovered);

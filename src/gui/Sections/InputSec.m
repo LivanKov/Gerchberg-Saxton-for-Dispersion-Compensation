@@ -27,9 +27,8 @@ classdef InputSec < handle
             g_i1.Layout.Row = 1;
             g_i1.Padding(1) = 30;
             
-            x = -System.SAMP_TIME:1/System.FS:System.SAMP_TIME;
-            p_s = s.pulseShape;
-            y = Pulse.GeneratePulse(x, p_s, s.multiplier, s.alpha);
+            x = -this.system.SAMP_TIME:1/this.system.FS:this.system.SAMP_TIME;
+            y = Pulse.GeneratePulse(x, this.system);
             this.pulse_plot = uiaxes(g_i1);
             this.f_pulse = uiaxes(g_i1);
         
@@ -75,7 +74,7 @@ classdef InputSec < handle
             this.pulse_plot.Layout.Row = 1;
             this.pulse_plot.Layout.Column = 2;
             this.pulse_plot.YLim = [2 * min(y) 2 * max(y)];
-            this.pulse_plot.XLim = [-System.SAMPLING_INTERVAL System.SAMPLING_INTERVAL];
+            this.pulse_plot.XLim = [-this.system.SAMPLING_INTERVAL this.system.SAMPLING_INTERVAL];
         
             this.f_pulse.Layout.Row = 1;
             this.f_pulse.Layout.Column = 3;
@@ -107,6 +106,21 @@ classdef InputSec < handle
                 "ButtonPushedFcn", @(src, event) this.readInputText(src, event, input_txt_area, s));
             upload_txt_btn.Position(1:4) = [200 90 80 20];
             
+            add_cd_btn = uibutton(input_panel, ...
+                "Text", "Add CD", ...
+                "ButtonPushedFcn", @(src, event) this.addChromaticDispersion(src, event));
+            add_cd_btn.Position(1:4) = [200 65 80 20];
+            
+            remove_cd_btn = uibutton(input_panel, ...
+                "Text", "Remove CD", ...
+                "ButtonPushedFcn", @(src, event) this.removeChromaticDispersion(src, event));
+            remove_cd_btn.Position(1:4) = [200 40 80 20];
+
+            square_btn = uibutton(input_panel, ...
+                "Text", "Square Law", ...
+                "ButtonPushedFcn", @(src, event) this.applySquareLaw(src, event));
+            square_btn.Position(1:4) = [200 15 80 20];
+
             input_mode_panel = uipanel(g_i2);
             input_mode_panel.Layout.Row = 1;
             input_mode_panel.Layout.Column = 1;
@@ -156,9 +170,8 @@ classdef InputSec < handle
         end
 
         function redrawPulse(this)
-            p_s = this.system.pulseShape;
-            x = -System.SAMP_TIME:1/System.FS:System.SAMP_TIME;
-            y = Pulse.GeneratePulse(x, p_s, this.system.multiplier, this.system.alpha);
+            x = -this.system.SAMP_TIME:1/this.system.FS:this.system.SAMP_TIME;
+            y = Pulse.GeneratePulse(x, this.system);
             plot(this.pulse_plot,x, y);
             this.pulse_plot.YLim = [2*min(y) 2*max(y)];
             y_fft = fftshift(fft(y));
@@ -258,6 +271,46 @@ classdef InputSec < handle
                 this.disabled_plot = false;
             else
                 this.disabled_plot = true;
+            end
+        end
+
+        function addChromaticDispersion(this, ~, ~)
+            if ~isempty(this.system.currentVals)
+                this.system.applyChromaticDispersion();
+                if ~this.disabled_plot
+                    this.refreshInputPlot();
+                    plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);
+                    this.input_analysis_graph.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
+                end
+            else
+                fprintf(2, "Error: No signal to apply chromatic dispersion\n");
+            end
+        end
+
+        function removeChromaticDispersion(this, ~, ~)
+            if ~isempty(this.system.duplicatedVals)
+                this.system.currentVals = this.system.duplicatedVals;
+                if ~this.disabled_plot
+                    this.refreshInputPlot();
+                    plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);
+                    this.input_analysis_graph.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
+                end
+            else
+                fprintf(2, "Error: No backup signal to restore\n");
+            end
+        end
+
+        function applySquareLaw(this, ~, ~)
+            % Apply square-law detection to the current values
+            if ~isempty(this.system.currentVals)
+                this.system.applySquareLaw();
+                if ~this.disabled_plot
+                    this.refreshInputPlot();
+                    plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);
+                    this.input_analysis_graph.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
+                end
+            else
+                fprintf(2, "Error: No signal to apply square-law detection\n");
             end
         end
     end

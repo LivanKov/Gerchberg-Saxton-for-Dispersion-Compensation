@@ -1,17 +1,14 @@
-clc; clear; close all;
-
 L = 20;         
 D = 17;            
 lambda = 1550e-9;    
 c = 3e8;     
 
 beta2 = -(lambda^2 / (2*pi*c)) * (D * 1e-3);
-
-T0 = 2*10e-12; 
+system = System;
 fs = 1000e9;   
 dt = 1/fs;
 t = -200e-12 : dt : 200e-12;
-sig = Pulse.CosSqr(t, 1, T0);
+sig = Pulse.Sinc(t/(system.SAMPLING_INTERVAL*2));
 
 N = length(sig);
 U0 = fftshift(fft(sig));
@@ -26,7 +23,6 @@ H = exp(1i * (beta2/2) * omega.^2 * L);
 U_out = U0 .* H;
 sig_out = ifft(ifftshift(U_out));
 
-figure;
-plot(t*1e12, abs(sig), 'blue'); hold on;
-plot(t*1e12, abs(sig_out), 'red');
+plot(t*1e12, abs(sig).^2); hold on;
+plot(t*1e12, abs(sig_out).^2);
 grid on;

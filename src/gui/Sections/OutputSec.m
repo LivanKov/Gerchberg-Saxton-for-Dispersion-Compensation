@@ -74,7 +74,7 @@ classdef OutputSec < handle
             
             N = length(this.system.currentVals);
             spec = fftshift(fft(this.system.currentVals));
-            f = (-(N/2):(N/2-1)) * System.FS/N;
+            f = (-(N/2):(N/2-1)) * this.system.FS/N;
         end
         
         function generatePlot(this)
@@ -86,7 +86,7 @@ classdef OutputSec < handle
             end
             spec = fftshift(fft(this.system.currentVals));
             N = length(this.system.t_vec);
-            f = (-(N/2):(N/2-1)) * System.FS/N;
+            f = (-(N/2):(N/2-1)) * this.system.FS/N;
             this.MagLine = plot(this.TopAxes, f, abs(spec), 'b');
             this.TopAxes.YLim = [0 max(abs(spec)) * 1.2]
             this.FilterLine = [];
@@ -99,7 +99,7 @@ classdef OutputSec < handle
             N = length(this.system.t_vec);
             spec = fftshift(fft(this.system.nonNoisyVals));
             noisy_spec = fftshift(fft(this.system.currentVals));
-            f = (-(N/2):(N/2-1)) * System.FS/N;
+            f = (-(N/2):(N/2-1)) * this.system.FS/N;
             
             o_f.areaCovered = currentVal;
             designed_filt = o_f.construct(f, spec);

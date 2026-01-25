@@ -20,10 +20,9 @@ classdef NoiseSec < handle
             n_i = uigridlayout(panel, [2 1]);
             n_i.RowHeight = {'1x', 300};
             
-            dt = 1/System.FS;
-            x_noisy = -System.SAMPLING_INTERVAL:dt:System.SAMPLING_INTERVAL;
-            pulse_shape = s.pulseShape;
-            y_noisy = Pulse.GeneratePulse(x_noisy, pulse_shape,s.multiplier);
+            dt = 1/this.system.FS;
+            x_noisy = -this.system.SAMPLING_INTERVAL:dt:this.system.SAMPLING_INTERVAL;
+            y_noisy = Pulse.GeneratePulse(x_noisy, this.system);
             
             n_ii = uigridlayout(n_i, [1 2]);
             n_ii.Layout.Row = 1;
@@ -85,8 +84,7 @@ classdef NoiseSec < handle
         end
         
         function updateSlider(this, ~, event, noisy_pulse, x)
-            p_s = this.system.pulseShape;
-            y = Pulse.GeneratePulse(x, p_s, this.system.multiplier);
+            y = Pulse.GeneratePulse(x, this.system);
             noise = randn(1, length(y)) * sqrt(event.Value);
             noisy_signal = y + noise;
             plot(noisy_pulse, x, noisy_signal);
@@ -99,7 +97,7 @@ classdef NoiseSec < handle
             this.noise_power_label.Text = "Noise Power: " + string(noise_power) + " W";
             
             if noise_power > 0
-                snr = energy_per_symbol / (noise_power / (1/System.SAMPLING_INTERVAL));
+                snr = energy_per_symbol / (noise_power / (1/this.system.SAMPLING_INTERVAL));
                 snr_db = 10 * log10(snr);
                 this.snr_label.Text = "SNR: " + string(snr);
                 this.snr_db_label.Text = "SNR (dB): " + string(snr_db);

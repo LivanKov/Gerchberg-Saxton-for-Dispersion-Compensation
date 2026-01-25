@@ -11,7 +11,7 @@ disp(length(s.currentVals));
 
 spec = fft(pulse);
 N = length(pulse);
-fs = System.FS;
+fs = s.FS;
 f = (-N/2:N/2-1) * (fs/N);
 
 subplot(4,1,1);

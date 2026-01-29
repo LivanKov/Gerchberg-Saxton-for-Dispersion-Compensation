@@ -1,4 +1,4 @@
-L = 4;         
+L = 20;         
 D = 17;            
 lambda = 1550e-9;    
 c = 3e8;     
@@ -8,7 +8,7 @@ system = System;
 fs = 1000e9;   
 dt = 1/fs;
 t = -200e-12 : dt : 200e-12;
-sig = Pulse.Sinc(t/(system.SAMPLING_INTERVAL/2));
+sig = Pulse.Sinc(t/(system.SAMPLING_INTERVAL*2));
 
 N = length(sig);
 U0 = fftshift(fft(sig));
@@ -27,7 +27,15 @@ plot(t, sig); hold on;
 plot(t, sig_out); hold on;
 plot(t, abs(sig_out));
 
-title("Effects of Chromatic Dispersion on a singular SINC Impulse");
-legend("Pulse", "Pulse affected by CD", "Abs() of a pulse affected by CD", 'Location', 'northeast');
 
-grid on;
+A = fftshift(ifft2(fftshift(Target)));
+for i=1:25
+  B = abs(Source) .* exp(1i*angle(A));
+  C = fftshift(fft(fftshift(B)));
+  D = abs(Target) .* exp(1i*angle(C));
+  A = fftshift(ifft(fftshift(D)));
+
+    plot(abs(C)) %Present current pattern
+    title(sprintf('%d',i));
+    pause(0.5)
+end

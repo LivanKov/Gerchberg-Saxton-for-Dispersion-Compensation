@@ -138,7 +138,7 @@ classdef System < handle
             this.t_vec = -len:dt:len;
         end
 
-        function applyChromaticDispersion(this)
+        function [ab, comp] = applyChromaticDispersion(this)
             D = 17;
             beta2 = -(this.LAMBDA^2 / (2*pi*this.LIGHT)) * (D * 1e-3);
             N = length(this.duplicatedVals);
@@ -146,7 +146,9 @@ classdef System < handle
             f = (-((N-1)/2):(N/2)) * this.FS/N * 2*pi;
             H = exp(1i * (beta2/2) * f.^2 * this.CHAN_LEN); 
             U_out = U0 .* H;
-            this.currentVals = abs(ifft(ifftshift(U_out)));
+            comp = ifft(ifftshift(U_out));
+            ab = abs(comp);
+            this.currentVals = ab;
         end
 
         function applySquareLaw(this)

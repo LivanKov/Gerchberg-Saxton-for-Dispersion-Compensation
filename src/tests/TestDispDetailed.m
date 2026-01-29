@@ -18,23 +18,25 @@ f_hz = (-N/2 : N/2-1) * df; % Frequency axis in Hz (centered)
 omega = 2 * pi * f_hz;      % Angular frequency axis (rad/s)
 
 % Now apply the transfer function using omega
-H = exp(1i * (beta2/2) * omega.^2 * system.CHAN_LEN);
+H = exp(1i * (beta2/2) * omega.^2 * 4);
 U_out = U0 .* H;
 sig_out = ifft(ifftshift(U_out));
 
 figure;
-plot(t*1e12, sig); hold on;
-plot(t*1e12, abs(sig_out));
+plot(t, sig); hold on;
+plot(t, abs(sig_out)); hold on;
+plot(t, sig_out);
 grid on;
 
-
+system.CHAN_LEN = 4;
 figure;
-s.pulseShape = Pulse.SINC;
-s.ingest('1');
-s.shapeInput();
-s.plot(); hold on;
-s.applyChromaticDispersion();
-s.plot();
+system.pulseShape = Pulse.SINC;
+system.ingest('1');
+system.shapeInput();
+system.plot(); hold on;
+[ab, comp] = system.applyChromaticDispersion();
+plot(system.t_vec, ab); hold on;
+plot(system.t_vec, comp); hold on;
 grid on;
 
 

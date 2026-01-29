@@ -57,13 +57,11 @@ fprintf('Recovered Phase Shift: %.4f rad\n', recovered_shift);
 %% 4. Visual Plot
 figure;
 subplot(2,1,1);
-plot(t, measured_envelope, 'k', 'LineWidth', 2);
-title('The "Envelope" (Beat Pattern) we used as a constraint');
-xlabel('Time'); ylabel('Magnitude');
+plot(t, measured_envelope);
 
 subplot(2,1,2);
-plot(angle(ground_truth), 'b', 'LineWidth', 1.5); hold on;
-plot(angle(guess_signal), 'r--', 'LineWidth', 1.5);
+plot(angle(ground_truth)); hold on;
+plot(angle(guess_signal));
 legend('True Phase Pattern', 'Recovered Phase Pattern');
 title('Phase Comparison');
 xlabel('Time'); ylabel('Phase (rad)');

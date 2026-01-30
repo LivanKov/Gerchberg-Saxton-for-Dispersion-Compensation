@@ -35,25 +35,6 @@ for k = 1:50
     guess_signal = measured_envelope .* exp(1j * angle(guess_signal));
 end
 
-%% 3. Check the Result
-% We look at the phase difference between the two tones in our result
-% to see if we recovered the hidden "pi/2" shift.
-
-% Extract the two dominant frequencies from the result using FFT
-final_spectrum = fft(guess_signal);
-[~, idx1] = max(abs(final_spectrum)); % Find peak 1
-% (Cheat a bit to find the second peak for this demo)
-spectrum_copy = abs(final_spectrum); spectrum_copy(idx1) = 0; 
-[~, idx2] = max(spectrum_copy);       % Find peak 2
-
-% Calculate the phase difference between these two recovered peaks
-phase_1 = angle(final_spectrum(idx1));
-phase_2 = angle(final_spectrum(idx2));
-recovered_shift = abs(phase_2 - phase_1);
-
-fprintf('True Phase Shift:      %.4f rad\n', true_phase_shift);
-fprintf('Recovered Phase Shift: %.4f rad\n', recovered_shift);
-
 %% 4. Visual Plot
 figure;
 subplot(2,1,1);

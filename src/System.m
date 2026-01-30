@@ -96,14 +96,12 @@ classdef System < handle
             f = (-(N/2):(N/2-1)) * this.FS/N;
             
             if ~this.filterPreBuilt
-                % Construct and cache the filter on first run
                 no_noise_spec = fftshift(fft(this.nonNoisyVals));
                 this.filter = this.outputFilter.construct(f, no_noise_spec);
                 this.filterPreBuilt = true;
                 disp("No filter");
             end
             
-            % Apply the cached filter
             noise_sig_mag = fftshift(fft(this.currentVals));
             filtered_spec = this.filter .* noise_sig_mag;
             x = ifft(ifftshift(filtered_spec));
@@ -148,7 +146,7 @@ classdef System < handle
             U_out = U0 .* H;
             comp = ifft(ifftshift(U_out));
             ab = abs(comp);
-            this.currentVals = ab;
+            this.currentVals = comp;
         end
 
         function applySquareLaw(this)
@@ -170,12 +168,14 @@ classdef System < handle
             addParameter(p, 'lowpassPercentage', 90, @isnumeric);
             addParameter(p, 'pulseShape', Pulse.SINC);
             addParameter(p, 'useLowpassFilter', true, @islogical);
+            addParameter(p, 'enableOpticalChannel', false, @islogical);
             parse(p, varargin{:});
             
             len = p.Results.length;
             lowpass_percentage = p.Results.lowpassPercentage;
             pulse = p.Results.pulseShape;
             use_filter = p.Results.useLowpassFilter;
+            enable_optical_channel = p.Results.enableOpticalChannel;
             
             temp_input = Input;
             temp_input.generateRandomBin(len);
@@ -197,7 +197,7 @@ classdef System < handle
                 fprintf(1,"\n");
                 result = this.runTest('inputStream', test_stream, 'noiseVariance', required_noise, ...
                     'lowpassPercentage', lowpass_percentage, 'pulseShape', pulse, ...
-                    'useLowpassFilter', use_filter);
+                    'useLowpassFilter', use_filter, 'enableOpticalChannel', enable_optical_channel);
                 y(i) = result.ber/100;
             end
             this.clear();
@@ -229,6 +229,7 @@ classdef System < handle
             addParameter(p, 'pulseShape', Pulse.SINC);
             addParameter(p, 'noiseVariance', 0.5, @isnumeric);
             addParameter(p, 'useLowpassFilter', true, @islogical);
+            addParameter(p, 'enableOpticalChannel', false, @islogical);
             parse(p, varargin{:});
             
             input_stream = p.Results.inputStream;
@@ -237,6 +238,7 @@ classdef System < handle
             pulse = p.Results.pulseShape;
             noise_var = p.Results.noiseVariance;
             use_filter = p.Results.useLowpassFilter;
+            enable_optical_channel = p.Results.enableOpticalChannel;
             this.pulseShape = pulse;
             
             this.outputFilter.areaCovered = lowpass_percentage;
@@ -246,6 +248,10 @@ classdef System < handle
                 this.ingest(input_stream);
             end
             this.shapeInput();
+            if enable_optical_channel
+                this.applyChromaticDispersion();
+                this.applySquareLaw();
+            end
             this.addNoise(noise_var);
             
             if use_filter

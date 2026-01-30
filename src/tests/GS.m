@@ -1,8 +1,6 @@
-delta = 1/256;
-Maxiter = 1000;
-t = -0.5:delta:5-delta;
+Maxiter = 10000;
+t = -5:0.01:5-0.01;
 N = length(t);
-error_tol = 1e-10;
 
 full_f = rectangularPulse(-.5, .5, 2*t).*exp(30i*pi*t.^2);
 
@@ -32,3 +30,5 @@ end
 figure;
 plot(angle(x));
 
+% Gerchberg-Saxton conversion via difference
+% Optimize the consistency of the GS-Algorithm (currently rather inconsistent)

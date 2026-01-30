@@ -1,4 +1,4 @@
-L = 4;         
+L = 1;         
 D = 17;            
 lambda = 1550e-9;    
 c = 3e8;     
@@ -25,9 +25,12 @@ sig_out = ifft(ifftshift(U_out));
 
 plot(t, sig); hold on;
 plot(t, sig_out); hold on;
-plot(t, abs(sig_out));
+plot(t, abs(sig_out).^2);
 
 title("Effects of Chromatic Dispersion on a singular SINC Impulse");
-legend("Pulse", "Pulse affected by CD", "Abs() of a pulse affected by CD", 'Location', 'northeast');
+legend("Pulse", "Pulse affected by CD", "Abs()^2 of a pulse affected by CD", 'Location', 'northeast');
 
 grid on;
+
+%% Symbol rate anpassen
+%% 30 ghz

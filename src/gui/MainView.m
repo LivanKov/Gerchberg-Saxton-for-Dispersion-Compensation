@@ -21,7 +21,6 @@ classdef MainView < handle
             n_sec = uitab(tabs,'Title','Noise');
             out_sec = uitab(tabs,'Title','Output');
             sample_sec = uitab(tabs,'Title','Sample');
-            optical_sec = uitab(tabs,'Title','Optical');
             settings = uitab(tabs, 'Title', 'Settings');
             overview_sec = uitab(tabs,'Title','Overview');
 
@@ -37,9 +36,6 @@ classdef MainView < handle
             
             % Sample section
             SampleSec(sample_sec, s);
-
-            % Optical section
-            Optical(optical_sec, s);
 
             % Settings section
             Settings(settings, s);

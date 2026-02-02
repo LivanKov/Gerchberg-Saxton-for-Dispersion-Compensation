@@ -1,6 +1,7 @@
-% In order to perform this test, we need to reduce the data rate and
-% investigate
-
-% For now, set the channel length to a very low value;
+% Compare different pulse shapes in regards to their BER within a system
+% that utilizes a lowpass filter
 s = System;
-s.CHAN_LEN = 1;
+n_samples = 100000;
+
+[x_1, y_1] = s.runBERTest('useLowpassFilter', false, 'length', n_samples, 'pulseShape', Pulse.SINC);
+plot(x, y, '-s');

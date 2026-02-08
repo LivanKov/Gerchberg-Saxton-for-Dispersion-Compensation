@@ -8,6 +8,7 @@ classdef Settings < handle
         fsField
         chanLenField
         lambdaField
+        dataRateLabel
     end
     
     methods
@@ -15,8 +16,8 @@ classdef Settings < handle
             this.parent = panel;
             this.system = s;
             
-            g = uigridlayout(this.parent, [6 2]);
-            g.RowHeight = {'fit', 'fit', 'fit', 'fit', 'fit', '1x'};
+            g = uigridlayout(this.parent, [7 2]);
+            g.RowHeight = {'fit', 'fit', 'fit', 'fit', 'fit', 'fit', '1x'};
             g.ColumnWidth = {'fit', '1x'};
             g.Padding = [10 10 10 10];
             g.RowSpacing = 10;
@@ -72,11 +73,21 @@ classdef Settings < handle
                 'ValueChangedFcn', @(src, event) this.updateLambda(src));
             this.lambdaField.Layout.Row = 5;
             this.lambdaField.Layout.Column = 2;
+            
+            lbl6 = uilabel(g, 'Text', 'Data Rate:');
+            lbl6.Layout.Row = 6;
+            lbl6.Layout.Column = 1;
+            
+            this.dataRateLabel = uilabel(g);
+            this.dataRateLabel.Layout.Row = 6;
+            this.dataRateLabel.Layout.Column = 2;
+            this.refreshDataRate();
         end
         
         % Callback functions to update system parameters
         function updateSamplingInterval(this, src)
             this.system.SAMPLING_INTERVAL = src.Value * 1e-12;
+            this.refreshDataRate();
         end
         
         function updateSampTime(this, src)
@@ -93,6 +104,19 @@ classdef Settings < handle
         
         function updateLambda(this, src)
             this.system.LAMBDA = src.Value * 1e-9;
+        end
+        
+        function refreshDataRate(this)
+            rate = 1 / this.system.SAMPLING_INTERVAL;
+            if rate >= 1e12
+                this.dataRateLabel.Text = sprintf('%.2f Tbps', rate / 1e12);
+            elseif rate >= 1e9
+                this.dataRateLabel.Text = sprintf('%.2f Gbps', rate / 1e9);
+            elseif rate >= 1e6
+                this.dataRateLabel.Text = sprintf('%.2f Mbps', rate / 1e6);
+            else
+                this.dataRateLabel.Text = sprintf('%.2f bps', rate);
+            end
         end
     end
 end

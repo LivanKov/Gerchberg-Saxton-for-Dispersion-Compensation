@@ -211,7 +211,7 @@ classdef InputSec < handle
                 if ~isempty(bin_stream)
                     if ~this.disabled_plot
                         this.refreshInputPlot();
-                        plot(this.input_analysis_graph, sys.t_vec, sys.currentVals);
+                        plot(this.input_analysis_graph, sys.t_vec, sys.diracVals);
                         this.input_analysis_graph.XLim = [0 16 * sys.SAMPLING_INTERVAL];
                         this.input_analysis_graph.YLim(2) = sys.multiplier;
                     end
@@ -279,6 +279,8 @@ classdef InputSec < handle
                 this.system.applyChromaticDispersion();
                 if ~this.disabled_plot
                     this.refreshInputPlot();
+                    plot(this.input_analysis_graph, this.system.t_vec, this.system.diracVals);
+                    hold(this.input_analysis_graph, 'on');
                     plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);
                     this.input_analysis_graph.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
                 end
@@ -292,6 +294,8 @@ classdef InputSec < handle
                 this.system.currentVals = this.system.duplicatedVals;
                 if ~this.disabled_plot
                     this.refreshInputPlot();
+                    plot(this.input_analysis_graph, this.system.t_vec, this.system.diracVals);
+                    hold(this.input_analysis_graph, 'on');
                     plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);
                     this.input_analysis_graph.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
                 end
@@ -306,6 +310,8 @@ classdef InputSec < handle
                 this.system.applySquareLaw();
                 if ~this.disabled_plot
                     this.refreshInputPlot();
+                    plot(this.input_analysis_graph, this.system.t_vec, this.system.diracVals);
+                    hold(this.input_analysis_graph, 'on');
                     plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);
                     this.input_analysis_graph.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
                 end

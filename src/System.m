@@ -18,6 +18,7 @@ classdef System < handle
         Output
         currentVals; % current values output by the filter etc.
         nonNoisyVals;
+        diracVals;
         duplicatedVals;
         t_vec
         multiplier
@@ -62,6 +63,7 @@ classdef System < handle
             [vals, indices] = Pulse.Dirac(this.t_vec, in.stream, ...
                 this.SAMPLING_INTERVAL);
             this.currentVals = this.multiplier * vals;
+            this.diracVals = this.currentVals;
             this.sample_indices = indices;
             this.duplicatedVals = this.currentVals;
         end
@@ -146,7 +148,7 @@ classdef System < handle
             U_out = U0 .* H;
             comp = ifft(ifftshift(U_out));
             ab = abs(comp);
-            this.currentVals = comp;
+            this.currentVals = ab;
         end
 
         function applySquareLaw(this)

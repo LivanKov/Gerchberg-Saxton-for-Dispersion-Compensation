@@ -25,7 +25,7 @@ sig_out = ifft(ifftshift(U_out));
 
 plot(t, sig); hold on;
 plot(t, sig_out); hold on;
-plot(t, abs(sig_out).^2);
+plot(t, abs(sig_out));
 
 title("Effects of Chromatic Dispersion on a singular SINC Impulse");
 legend("Pulse", "Pulse affected by CD", "Abs()^2 of a pulse affected by CD", 'Location', 'northeast');

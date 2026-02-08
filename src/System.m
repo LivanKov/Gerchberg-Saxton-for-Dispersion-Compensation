@@ -149,10 +149,12 @@ classdef System < handle
             comp = ifft(ifftshift(U_out));
             ab = abs(comp);
             this.currentVals = ab;
+            this.duplicatedVals = this.currentVals;
         end
 
         function applySquareLaw(this)
             this.currentVals = (abs(this.currentVals)) .^ 2;
+            this.duplicatedVals = this.currentVals;
         end
 
         function [ber, sampledValues] = sampleInput(this)
@@ -251,6 +253,7 @@ classdef System < handle
             end
             this.shapeInput();
             if enable_optical_channel
+                disp("Applying Chromatic Dispersion");
                 this.applyChromaticDispersion();
                 this.applySquareLaw();
             end

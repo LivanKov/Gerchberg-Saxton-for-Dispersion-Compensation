@@ -11,7 +11,15 @@ target_envelope = abs(target_launch);
 
 max_iters = 100;
 
+% Arbitrary phase
+% pattern ϕ(t) should be generated and combined with the target
+%amplitude A(t) to obtain the initialized receiver side signal
 predistorted_launch = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
+
+
+plot(angle(predistorted_launch));
+figure;
+plot(abs(predistorted_launch));
 
 for k = 1:max_iters
     propagated = applyCD(predistorted_launch, system);
@@ -19,6 +27,8 @@ for k = 1:max_iters
     backpropagated = applyCDInverse(propagated, system);
     predistorted_launch = target_envelope .* exp(1j * angle(backpropagated));
 end
+
+% to reverse the order of the initialization later
 
 baseline_out = applyCD(target_launch, system);
 predistorted_out = applyCD(predistorted_launch, system);

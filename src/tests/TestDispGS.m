@@ -22,6 +22,9 @@ measured_envelope = abs(comp);
 measured_spectrum = abs(fft(comp));
 guess_signal = measured_envelope .* exp(1j * 2*pi*rand(size(measured_envelope)));
 
+figure;
+plot(angle(guess_signal));
+
 for k = 1:100
     F = fft(guess_signal);
     F = measured_spectrum .* exp(1j * angle(F));

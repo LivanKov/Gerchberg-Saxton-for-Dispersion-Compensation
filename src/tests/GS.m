@@ -30,5 +30,8 @@ end
 figure;
 plot(angle(x));
 
+% Occasionally results in flipped real + complex result -> what to do???
+
+
 % Gerchberg-Saxton conversion via difference
 % Optimize the consistency of the GS-Algorithm (currently rather inconsistent)

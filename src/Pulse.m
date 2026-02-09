@@ -21,7 +21,7 @@ classdef Pulse
                 case Pulse.RRCOS
                     pulse = Pulse.RRCos(input/(System.SAMPLING_INTERVAL/2), System.alpha);
                 case Pulse.SINC
-                    pulse = Pulse.Sinc(input/(System.SAMPLING_INTERVAL));
+                    pulse = Pulse.Sinc(input/(System.SAMPLING_INTERVAL/2));
                 case Pulse.MANCHESTER
                     pulse = Pulse.Manchester(input/System.SAMPLING_INTERVAL);
                 case Pulse.GAUS

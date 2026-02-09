@@ -1,0 +1,318 @@
+classdef InputSec < handle
+    properties (Access = private)
+        parent % Parent panel
+        system System % System object reference
+        mode_label % Access the data mode label
+        size_label % Access the data size label
+        input_analysis_graph % Access the input analysis graph
+        pulse_plot % Access the single pulse plot
+        f_pulse % Access the frequency domain plot
+        alpha_slider % Access the alpha slider
+        input_switch % Access the input analysis switch
+        disabled_plot % Flag to disable plotting
+    end
+
+    methods
+        function this = InputSec(panel, s)
+            this.parent = panel;
+            this.system = s;
+            this.disabled_plot = true;
+            g_i = uigridlayout(this.parent, [3 1]);
+            g_i.RowHeight = {180, 130, '1x'};
+            
+            g_i1 = uigridlayout(g_i);
+            g_i1.ColumnWidth = {110, '1x', '1x'};
+            g_i1.RowHeight = {160};
+            g_i1.Layout.Column = 1;
+            g_i1.Layout.Row = 1;
+            g_i1.Padding(1) = 30;
+            
+            x = -this.system.SAMP_TIME:1/this.system.FS:this.system.SAMP_TIME;
+            y = Pulse.GeneratePulse(x, this.system);
+            this.pulse_plot = uiaxes(g_i1);
+            this.f_pulse = uiaxes(g_i1);
+        
+            dd_panel = uipanel(g_i1);
+            dd_panel.Layout.Row = 1;
+            dd_panel.Layout.Column = 1;
+            dd_panel.BorderType = 'none';
+        
+            dd_label = uilabel(dd_panel);
+            dd_label.Text = "Pulse Shape";
+            dd_label.FontSize = 12;
+            dd_label.Position(1:3) = [10 140 80];
+        
+        
+            pulse_dd = uidropdown(dd_panel, ...
+                "ValueChangedFcn",@(src,event) this.updatePulse(src,event));
+            pulse_dd.Placeholder = 'Pulse Shape';
+            pulse_dd.Items = this.getPulseShapes();
+            pulse_dd.Position(1:3) = [5 120 80];
+            pulse_dd.FontSize = 10;
+
+            mult_label = uilabel(dd_panel);
+            mult_label.Text = "Multiplier";
+            mult_label.Position = [5 90 100 20];
+            mult_label.FontSize = 10;
+            uieditfield(dd_panel, 'numeric', ...
+                'Position', [5 70 100 22], ...
+                'Value', 1.0, ...
+                'ValueChangedFcn', @(src,event) this.changeMultiplier(src, event));
+
+            alpha_label = uilabel(dd_panel);
+            alpha_label.Text = "Alpha";
+            alpha_label.Position = [5 50 100 20];
+            alpha_label.FontSize = 10;
+            this.alpha_slider = uislider(dd_panel, ...
+                'ValueChangedFcn', @(src,event) this.changeAlpha(src, event));
+            this.alpha_slider.Limits = [0 1];
+            this.alpha_slider.Value = this.system.alpha;
+            this.alpha_slider.Position = [8 40 100 3];
+            this.alpha_slider.Enable = 'off';
+            
+
+            this.pulse_plot.Layout.Row = 1;
+            this.pulse_plot.Layout.Column = 2;
+            this.pulse_plot.YLim = [2 * min(y) 2 * max(y)];
+            this.pulse_plot.XLim = [-this.system.SAMPLING_INTERVAL this.system.SAMPLING_INTERVAL];
+        
+            this.f_pulse.Layout.Row = 1;
+            this.f_pulse.Layout.Column = 3;
+        
+            plot(this.pulse_plot,x,y);
+            
+            % Plot frequency domain
+            y_fft = fftshift(fft(y));
+            plot(this.f_pulse, abs(y_fft));
+            this.f_pulse.YLim = [0 1.2 * max(abs(y_fft))];
+            
+            g_i2 = uigridlayout(g_i);
+            g_i2.ColumnWidth = {120, '1x'};
+            g_i2.RowHeight = {110};
+            g_i2.Layout.Column = 1;
+            g_i2.Layout.Row = 2;
+            g_i2.Padding(1) = 30;
+        
+            input_panel = uipanel(g_i2);
+            input_panel.Layout.Row = 1;
+            input_panel.Layout.Column = 2;
+            input_panel.BorderType = 'none';
+        
+            input_txt_area = uitextarea(input_panel, "Placeholder", "Enter message");
+            input_txt_area.Position(1:4) = [5 1 180 110];
+        
+            upload_txt_btn = uibutton(input_panel, ...
+                "Text", "Upload Text", ...
+                "ButtonPushedFcn", @(src, event) this.readInputText(src, event, input_txt_area, s));
+            upload_txt_btn.Position(1:4) = [200 90 80 20];
+            
+            add_cd_btn = uibutton(input_panel, ...
+                "Text", "Add CD", ...
+                "ButtonPushedFcn", @(src, event) this.addChromaticDispersion(src, event));
+            add_cd_btn.Position(1:4) = [200 65 80 20];
+            
+            remove_cd_btn = uibutton(input_panel, ...
+                "Text", "Remove CD", ...
+                "ButtonPushedFcn", @(src, event) this.removeChromaticDispersion(src, event));
+            remove_cd_btn.Position(1:4) = [200 40 80 20];
+
+            square_btn = uibutton(input_panel, ...
+                "Text", "Square Law", ...
+                "ButtonPushedFcn", @(src, event) this.applySquareLaw(src, event));
+            square_btn.Position(1:4) = [200 15 80 20];
+
+            input_mode_panel = uipanel(g_i2);
+            input_mode_panel.Layout.Row = 1;
+            input_mode_panel.Layout.Column = 1;
+        
+            bg = uibuttongroup(input_mode_panel, "SelectionChangedFcn", @(bg, event) this.uploadSelectionChange(bg, event, ...
+               input_txt_area, upload_txt_btn));
+            bg.BorderType = 'none';
+            
+            opt_1 = uiradiobutton(bg,"Text","Enter message", ...
+                "Position",[5 40 100 22]);
+            opt_1.Tag = 'msg';
+
+            opt_3 = uiradiobutton(bg, "Text", "Generate random stream", ...
+                "Position",[5 15 100 22]);
+            opt_3.Tag = 'random';
+            
+            bg.Position(1:4) = [5 25 100 200];
+            opt_1.FontSize = 10;
+            opt_3.FontSize = 10;
+        
+            this.mode_label = uilabel(input_mode_panel);
+            this.mode_label.Text = " ";
+            this.mode_label.Position(1:3) = [8 25 80];
+            this.mode_label.FontSize = 10;
+        
+            this.size_label = uilabel(input_mode_panel);
+            this.size_label.Position(1:3) = [8 5 80];
+            this.size_label.Text = " ";
+            this.size_label.FontSize = 10;
+        
+            input_analysis_panel = uipanel(g_i);
+            input_analysis_panel.Layout.Column = 1;
+            input_analysis_panel.Layout.Row = 3;
+        
+            this.input_switch = uiswitch(input_mode_panel, 'slider', ...
+                'ValueChangedFcn', @(src, event) this.onInputSwitchChanged(src, event));
+            this.input_switch.Position(1:2) = [30 10];
+        
+            this.input_analysis_graph = uiaxes(input_analysis_panel);
+            this.input_analysis_graph.Position(4) = 250;
+            this.input_analysis_graph.YLim = [0 1];
+        end
+
+        function names_str = getPulseShapes(~)
+           names = enumeration(Pulse.RECT);
+           names_str = string(names);
+        end
+
+        function redrawPulse(this)
+            x = -this.system.SAMP_TIME:1/this.system.FS:this.system.SAMP_TIME;
+            y = Pulse.GeneratePulse(x, this.system);
+            plot(this.pulse_plot,x, y);
+            this.pulse_plot.YLim = [2*min(y) 2*max(y)];
+            y_fft = fftshift(fft(y));
+            plot(this.f_pulse, abs(y_fft));
+            this.f_pulse.YLim = [0 1.2*max(abs(y_fft))];
+        end
+
+        function updatePulse(this, src, ~)
+            this.system.pulseShape = src.Value;
+            this.redrawPulse();
+            
+            % Enable slider only for RCOS or RRCOS pulses
+            if strcmp(src.Value, 'RCOS') || strcmp(src.Value, 'RRCOS')
+                this.alpha_slider.Enable = 'on';
+            else
+                this.alpha_slider.Enable = 'off';
+            end
+        end
+
+        function readInputText(this ,~ , ~, input_txt_area, sys)
+            text = input_txt_area.Value{1};
+            if (~~isempty(text))
+                fprintf(2, "Error: Empty message string\n");
+            else 
+                if input_txt_area.Placeholder == "Enter message"
+                    sys.ingest(text);
+                else 
+                    len = str2double(text);
+                    sys.generateRandomInput(len);
+                    if len <= 50000
+                        input_txt_area.Value = string(sys.input.stream);
+                    end
+                end
+                
+                bin_stream = sys.input.stream;
+
+                if ~isempty(bin_stream)
+                    if ~this.disabled_plot
+                        this.refreshInputPlot();
+                        plot(this.input_analysis_graph, sys.t_vec, sys.diracVals);
+                        this.input_analysis_graph.XLim = [0 16 * sys.SAMPLING_INTERVAL];
+                        this.input_analysis_graph.YLim(2) = sys.multiplier;
+                    end
+                    sys.shapeInput();
+                    if ~this.disabled_plot
+                        hold(this.input_analysis_graph, 'on');
+                        plot(this.input_analysis_graph, sys.t_vec, sys.currentVals);
+                    end
+                end
+            end
+        end
+
+        function uploadSelectionChange(~, ~, event, ...
+            input_txt_area, upload_txt_btn)
+           opt = event.NewValue.Tag;
+           if opt == "file"
+               input_txt_area.Enable = 'off';
+               upload_txt_btn.Enable = 'off';
+               input_txt_area.Placeholder = "Enter message";
+               upload_txt_btn.Text = "Upload";
+           elseif opt == "msg"
+               input_txt_area.Enable = 'on';
+               upload_txt_btn.Enable = 'on';
+               input_txt_area.Placeholder = "Enter message";                              
+               upload_txt_btn.Text = "Upload Text";
+           elseif opt == "random"
+               input_txt_area.Placeholder = "Enter length";
+               upload_txt_btn.Enable = 'on';
+               upload_txt_btn.Text = "Create";
+           end
+        end
+
+        function updateDataLabels(this)
+            this.size_label.Text = this.system.input.size(1) + " Bits, " + this.system.input.size(2) + " Bytes";
+            this.mode_label.Text = string(this.system.input.mode);
+        end
+
+        function refreshInputPlot(this)
+            if ~this.disabled_plot
+                cla(this.input_analysis_graph);
+            end
+        end
+
+        function changeMultiplier(this, src , ~)
+            this.system.multiplier = src.Value;
+            this.redrawPulse;
+        end
+
+        function changeAlpha(this, ~, event)
+            this.system.alpha = event.Value;
+            this.redrawPulse();
+        end
+
+        function onInputSwitchChanged(this, src, ~)
+            % Callback function for input analysis switch
+            if strcmp(src.Value, 'On')
+                this.disabled_plot = false;
+            else
+                this.disabled_plot = true;
+            end
+        end
+
+        function addChromaticDispersion(this, ~, ~)
+            if ~isempty(this.system.currentVals)
+                this.system.applyChromaticDispersion();
+                if ~this.disabled_plot
+                    this.refreshInputPlot();
+                    plot(this.input_analysis_graph, sys.t_vec, sys.diracVals);
+                    plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);
+                    this.input_analysis_graph.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
+                end
+            else
+                fprintf(2, "Error: No signal to apply chromatic dispersion\n");
+            end
+        end
+
+        function removeChromaticDispersion(this, ~, ~)
+            if ~isempty(this.system.duplicatedVals)
+                this.system.currentVals = this.system.duplicatedVals;
+                if ~this.disabled_plot
+                    this.refreshInputPlot();
+                    plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);
+                    this.input_analysis_graph.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
+                end
+            else
+                fprintf(2, "Error: No backup signal to restore\n");
+            end
+        end
+
+        function applySquareLaw(this, ~, ~)
+            % Apply square-law detection to the current values
+            if ~isempty(this.system.currentVals)
+                this.system.applySquareLaw();
+                if ~this.disabled_plot
+                    this.refreshInputPlot();
+                    plot(this.input_analysis_graph, this.system.t_vec, this.system.currentVals);
+                    this.input_analysis_graph.XLim = [0 16 * this.system.SAMPLING_INTERVAL];
+                end
+            else
+                fprintf(2, "Error: No signal to apply square-law detection\n");
+            end
+        end
+    end
+end

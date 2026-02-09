@@ -1,5 +1,5 @@
 %% Initialize a signal affected by chromatic dispersion
-clc; close all; clear all;
+clc; close all;
 system = System;
 
 figure;
@@ -10,6 +10,7 @@ system.shapeInput();
 plot(system.t_vec, system.currentVals);grid on;
 title("Initial pulse");
 [ab, comp] = system.applyChromaticDispersion();
+figure;
 plot(system.t_vec, ab); hold on;
 plot(system.t_vec, comp); grid on;
 title('Pulse affected by chromatic dispersion');

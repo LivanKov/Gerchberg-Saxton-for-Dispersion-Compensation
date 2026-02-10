@@ -9,20 +9,27 @@ system.shapeInput();
 target_launch = system.currentVals;
 target_envelope = abs(target_launch);
 
-max_iters = 100;
+max_iters = 550;
 
-% Arbitrary phase
-% pattern ϕ(t) should be generated and combined with the target
-%amplitude A(t) to obtain the initialized receiver side signal
-predistorted_launch = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
+% Receiver-side initialization:
+% A(t) with arbitrary phase.
+receiver_side = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
 
 
+% Inverse-CD-first GS loop:
+% 1) receiver -> transmitter using ICDTF
+% 2) transmitter constraint: keep amplitude B(t), set phase to 0
+% 3) transmitter -> receiver using CDTF
+% 4) receiver constraint: enforce target amplitude A(t), keep phase
 for k = 1:max_iters
-    propagated = applyCD(predistorted_launch, system);
-    propagated = target_envelope .* exp(1j * angle(propagated));
-    backpropagated = applyCDInverse(propagated, system);
-    predistorted_launch = target_envelope .* exp(1j * angle(backpropagated));
+    transmitter_side = applyCDInverse(receiver_side, system);
+    transmitter_side = target_envelope .*  exp(1j * angle(transmitter_side));
+    receiver_side = applyCD(transmitter_side, system);
+    receiver_side = target_envelope .* exp(1j * angle(receiver_side));
 end
+
+% Real-valued predistorted signal to launch.
+predistorted_launch = real(transmitter_side);
 
 baseline_out = applyCD(target_launch, system);
 predistorted_out = applyCD(predistorted_launch, system);

@@ -69,15 +69,15 @@ freq = (-N/2:N/2-1) / N * system.FS;
 filt = OutputFilter;
 filt.areaCovered = 99.9;
 sqr_filt = filt.construct(freq, spec);
-sq_predistorted_clean = abs(ifft(ifftshift(sqr_filt .* fftshift(fft(sq_predistorted)))));
+clean_pulse = abs(ifft(ifftshift(sqr_filt .* fftshift(fft(sq_predistorted)))));
 
 figure;
 plot(system.t_vec, sq_target); hold on;
 plot(system.t_vec, sq_baseline);
-plot(system.t_vec, sq_predistorted_clean);
+plot(system.t_vec, sq_predistorted);
 grid on;
 legend('Target |x(t)|^2', 'After CD + PD (no predistortion)', ...
-    'After CD + PD + Noise clean up', 'Location', 'Northeast');
+    'After CD + PD (GS predistortion)', 'Location', 'Northeast');
 title('Square-law output comparison (photodiode)');
 xlabel('Time (s)');
 ylabel('|x(t)|^2');

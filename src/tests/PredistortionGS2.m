@@ -9,7 +9,7 @@ system.shapeInput();
 target_launch = system.currentVals;
 target_envelope = abs(target_launch);
 
-max_iters = 550;
+max_iters = 100;
 
 % Receiver-side initialization:
 % A(t) with arbitrary phase.
@@ -22,17 +22,14 @@ receiver_side = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
 % 3) transmitter -> receiver using CDTF
 % 4) receiver constraint: enforce target amplitude A(t), keep phase
 for k = 1:max_iters
-    transmitter_side = applyCDInverse(receiver_side, system);
-    transmitter_side = target_envelope .*  exp(1j * angle(transmitter_side));
-    receiver_side = applyCD(transmitter_side, system);
-    receiver_side = target_envelope .* exp(1j * angle(receiver_side));
+    propagated = applyCD(receiver_side, system);
+    propagated = target_envelope .* exp(1j * angle(propagated));
+    backpropagated = applyCDInverse(propagated, system);
+    receiver_side = target_envelope .* exp(1j * angle(backpropagated));
 end
 
-% Real-valued predistorted signal to launch.
-predistorted_launch = real(transmitter_side);
-
 baseline_out = applyCD(target_launch, system);
-predistorted_out = applyCD(predistorted_launch, system);
+predistorted_out = applyCD(receiver_side, system);
 
 sq_target = target_envelope.^2;
 sq_baseline = abs(baseline_out).^2;
@@ -63,6 +60,28 @@ plot(system.t_vec, sq_predistorted);
 grid on;
 legend('Target |x(t)|^2', 'After CD + PD (no predistortion)', ...
     'After CD + PD (GS predistortion)', 'Location', 'Northeast');
+title('Square-law output comparison (photodiode)');
+xlabel('Time (s)');
+ylabel('|x(t)|^2');
+
+% Apply lowpass filter to sq_predistorted
+% sq_predistorted_filtered = lowpassFilter(sq_predistorted, system.FS, 0.1);
+
+spec = fftshift(fft(sq_target));
+N = length(sq_predistorted);
+freq = (-N/2:N/2-1) / N * system.FS;
+filt = OutputFilter;
+filt.areaCovered = 99.9;
+sqr_filt = filt.construct(freq, spec);
+sq_predistorted_clean = abs(ifft(ifftshift(sqr_filt .* fftshift(fft(sq_predistorted)))));
+
+figure;
+plot(system.t_vec, sq_target); hold on;
+plot(system.t_vec, sq_baseline);
+plot(system.t_vec, sq_predistorted_clean);
+grid on;
+legend('Target |x(t)|^2', 'After CD + PD (no predistortion)', ...
+    'After CD + PD + Noise clean up', 'Location', 'Northeast');
 title('Square-law output comparison (photodiode)');
 xlabel('Time (s)');
 ylabel('|x(t)|^2');

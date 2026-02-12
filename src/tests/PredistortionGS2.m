@@ -2,14 +2,14 @@ clc; close all;
 
 system = System;
 system.pulseShape = Pulse.SINC;
-system.CHAN_LEN = 20;
-system.ingest('1');
+system.CHAN_LEN = 30;
+system.ingest('10101010001010101');
 system.shapeInput();
 
 target_launch = system.currentVals;
 target_envelope = abs(target_launch);
 
-max_iters = 550;
+max_iters = 150;
 
 % Receiver-side initialization:
 % A(t) with arbitrary phase.
@@ -22,17 +22,14 @@ receiver_side = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
 % 3) transmitter -> receiver using CDTF
 % 4) receiver constraint: enforce target amplitude A(t), keep phase
 for k = 1:max_iters
-    transmitter_side = applyCDInverse(receiver_side, system);
-    transmitter_side = target_envelope .*  exp(1j * angle(transmitter_side));
-    receiver_side = applyCD(transmitter_side, system);
-    receiver_side = target_envelope .* exp(1j * angle(receiver_side));
+    backpropagated = applyCDInverse(receiver_side, system);
+    backpropagated = abs(backpropagated) .* exp(1j * 0);
+    propagated = applyCD(backpropagated, system);
+    receiver_side = target_envelope .* exp(1j * angle(propagated));
 end
 
-% Real-valued predistorted signal to launch.
-predistorted_launch = real(transmitter_side);
-
 baseline_out = applyCD(target_launch, system);
-predistorted_out = applyCD(predistorted_launch, system);
+predistorted_out = applyCD(abs(backpropagated), system);
 
 sq_target = target_envelope.^2;
 sq_baseline = abs(baseline_out).^2;
@@ -48,13 +45,6 @@ legend('Target envelope', 'After CD (no pred)', ...
 title('Envelope matching after chromatic dispersion');
 xlabel('Time (s)');
 ylabel('|x(t)|');
-
-figure;
-plot(system.t_vec, angle(predistorted_launch));
-grid on;
-title('Phase applied at transmitter (predistortion)');
-xlabel('Time (s)');
-ylabel('Phase (rad)');
 
 figure;
 plot(system.t_vec, sq_target); hold on;

@@ -13,7 +13,7 @@ classdef Pulse
         function mult_pulse = GeneratePulse(input, System)
             switch System.pulseShape 
                 case Pulse.RECT
-                    pulse = Pulse.RectPulse(input, 1, System.SAMPLING_INTERVAL/2);
+                    pulse = Pulse.RectPulse(input, 1, System.SAMPLING_INTERVAL);
                 case Pulse.COS_SQR
                     pulse = Pulse.CosSqr(input, 1, System.SAMPLING_INTERVAL);
                 case Pulse.RCOS
@@ -21,7 +21,7 @@ classdef Pulse
                 case Pulse.RRCOS
                     pulse = Pulse.RRCos(input/(System.SAMPLING_INTERVAL/2), System.alpha);
                 case Pulse.SINC
-                    pulse = Pulse.Sinc(input/(System.SAMPLING_INTERVAL/2));
+                    pulse = Pulse.Sinc(input/(System.SAMPLING_INTERVAL));
                 case Pulse.MANCHESTER
                     pulse = Pulse.Manchester(input/System.SAMPLING_INTERVAL);
                 case Pulse.GAUS

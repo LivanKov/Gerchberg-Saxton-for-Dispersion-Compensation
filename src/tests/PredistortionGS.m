@@ -3,19 +3,27 @@ clc; close all;
 system = System;
 system.pulseShape = Pulse.SINC;
 system.CHAN_LEN = 20;
-system.ingest('1');
+system.ingest('101011');
 system.shapeInput();
 
 target_launch = system.currentVals;
 target_envelope = abs(target_launch);
 
-max_iters = 100;
+max_iters = 10;
 
 % Arbitrary phase
 % pattern ϕ(t) should be generated and combined with the target
 %amplitude A(t) to obtain the initialized receiver side signal
 predistorted_launch = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
 
+
+% Transmitter constraint: the pulse has to be real-valued
+% Receiver constraint: the ampltiude has be equal to the original pulse,
+% the phase is irrelevant
+% Ideal case scenario: the input pulse is the inverse of the transfer
+% function in frequency domain -> has to be complex-value but it is
+% impossible as the input always has to be real-valued -> as such, 100%
+% precise approximation is not possible
 
 for k = 1:max_iters
     propagated = applyCD(predistorted_launch, system);
@@ -77,3 +85,22 @@ function out = applyCDInverse(signal, system)
     H_inv = exp(-1i * (beta2/2) * omega.^2 * system.CHAN_LEN);
     out = ifft(ifftshift(fftshift(fft(signal)) .* H_inv));
 end
+
+figure;
+
+
+
+% Amplitude only predistortion
+% amplitude is not resetted at the transmitter
+
+% Phase only predistortion
+% Amplitude is enforced, phase is taken from the component of the for-loop
+
+
+% Potentially harder to implement in real world 
+% Jacobi-Anger expansion
+
+% Convergence properties
+% Local minimum
+% Stability of the algorithm
+% Mean squared error should reduce between iterations

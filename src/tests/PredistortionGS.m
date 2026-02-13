@@ -2,8 +2,8 @@ clc; close all;
 
 system = System;
 system.pulseShape = Pulse.SINC;
-system.CHAN_LEN = 20;
-system.ingest('101011');
+system.CHAN_LEN = 30;
+system.ingest('10101010001010101');
 system.shapeInput();
 
 target_launch = system.currentVals;
@@ -109,8 +109,6 @@ function out = applyCDInverse(signal, system)
     H_inv = exp(-1i * (beta2/2) * omega.^2 * system.CHAN_LEN);
     out = ifft(ifftshift(fftshift(fft(signal)) .* H_inv));
 end
-
-figure;
 
 
 

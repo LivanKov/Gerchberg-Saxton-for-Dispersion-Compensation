@@ -17,7 +17,7 @@ classdef System < handle
         input
         Output
         currentVals; % current values output by the filter etc.
-        nonNoisyVals;
+        shapedVals;
         diracVals;
         duplicatedVals;
         t_vec
@@ -90,7 +90,7 @@ classdef System < handle
             out = conv(this.currentVals, pulse, 'same');
             this.currentVals = out;
             this.duplicatedVals = this.currentVals;
-            this.nonNoisyVals = this.currentVals;
+            this.shapedVals = this.currentVals;
         end
 
         function applyOutputFilter(this)
@@ -98,7 +98,7 @@ classdef System < handle
             f = (-(N/2):(N/2-1)) * this.FS/N;
             
             if ~this.filterPreBuilt
-                no_noise_spec = fftshift(fft(this.nonNoisyVals));
+                no_noise_spec = fftshift(fft(this.shapedVals));
                 this.filter = this.outputFilter.construct(f, no_noise_spec);
                 this.filterPreBuilt = true;
                 disp("No filter");
@@ -121,11 +121,26 @@ classdef System < handle
             this.currentVals = this.duplicatedVals + noise;
         end
 
+        function removeNoise(this)
+            this.noisePower = 0;
+            this.currentVals = this.duplicatedVals;
+        end
+
         function plot(this)
             if isempty(this.t_vec) || isempty(this.currentVals)
                 return
             end
             plot(this.t_vec, this.currentVals);
+            xlim([0, this.t_vec(end)]);
+        end
+
+        function scatterPlot(this)
+            if isempty(this.t_vec) || isempty(this.currentVals)
+                return
+            end
+            sampledValues = this.currentVals(this.sample_indices);
+            scatter(this.t_vec(this.sample_indices), sampledValues);
+            xlim([0 this.t_vec(end)]);
         end
 
         function out = sqrLawDetect(this)
@@ -151,6 +166,19 @@ classdef System < handle
             this.currentVals = ab;
             this.duplicatedVals = this.currentVals;
         end
+
+        function [ab, comp] = applyChromaticDispersionInv(this)
+            D = 17;
+            beta2 = -(this.LAMBDA^2 / (2*pi*this.LIGHT)) * (D * 1e-3);
+            N = length(this.duplicatedVals);
+            U0 = fftshift(fft(this.duplicatedVals));
+            f = (-((N-1)/2):(N/2)) * this.FS/N * 2*pi;
+            H_inv = exp(-1i * (beta2/2) * f.^2 * this.CHAN_LEN);
+            U_out = U0 .* H_inv;
+            comp = ifft(ifftshift(U_out));
+            ab = abs(comp);
+        end
+
 
         function applySquareLaw(this)
             this.currentVals = (abs(this.currentVals)) .^ 2;
@@ -212,7 +240,7 @@ classdef System < handle
             % clear - Resets the system object to its initial state
             % Clears all signal data, noise, and resets configuration to defaults
             this.currentVals = [];
-            this.nonNoisyVals = [];
+            this.shapedVals = [];
             this.duplicatedVals = [];
             this.t_vec = [];
             this.sample_indices = [];

@@ -1,4 +1,4 @@
-classdef InputSec < handle
+xclassdef InputSec < handle
     properties (Access = private)
         parent % Parent panel
         system System % System object reference

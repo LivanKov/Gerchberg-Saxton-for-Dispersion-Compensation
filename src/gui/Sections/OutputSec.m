@@ -73,8 +73,6 @@ classdef OutputSec < handle
             this.ApplyButton.ButtonPushedFcn = @(btn, event) this.applyFilter();
             
             N = length(this.system.currentVals);
-            spec = fftshift(fft(this.system.currentVals));
-            f = (-(N/2):(N/2-1)) * this.system.FS/N;
         end
         
         function generatePlot(this)
@@ -97,7 +95,7 @@ classdef OutputSec < handle
             this.ValueLabel.Text = sprintf('%d%%', currentVal);
             o_f = this.system.outputFilter;
             N = length(this.system.t_vec);
-            spec = fftshift(fft(this.system.nonNoisyVals));
+            spec = fftshift(fft(this.system.shapedVals));
             noisy_spec = fftshift(fft(this.system.currentVals));
             f = (-(N/2):(N/2-1)) * this.system.FS/N;
             

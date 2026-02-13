@@ -4,9 +4,12 @@ function out = CustomGS(system, mode, convergenceMode, iterations)
     mseTolerance = 1e-10;
     maxIterations = 1000;
 
+
+    % Phase-only predistortion mode
+    % Corresponds to the method in PredistortionGS.m
     if mode == 1
         % Phase-only predistortion
-        predistorted_launch = target_launch;
+        predistorted_launch = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
 
         if convergenceMode == 1
             % Fixed number of iterations
@@ -44,7 +47,8 @@ function out = CustomGS(system, mode, convergenceMode, iterations)
 
     elseif mode == 0
         % Amplitude-only predistortion
-        receiver_side = target_launch;
+        % Corresponds to the method in PredistortionGS2.m
+        receiver_side = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));;
 
         if convergenceMode == 1
             % Fixed number of iterations
@@ -78,7 +82,7 @@ function out = CustomGS(system, mode, convergenceMode, iterations)
             end
         end
 
-        out = backpropagated;
+        out = abs(backpropagated);
 
     else 
         fprintf(2, "Unknown mode! Supported Modes:\n1: Phase only predistortion.\n0: Amplitude only predistortion\n");

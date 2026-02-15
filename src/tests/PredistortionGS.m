@@ -2,14 +2,14 @@ clc; close all;
 
 system = System;
 system.pulseShape = Pulse.SINC;
-system.CHAN_LEN = 30;
+system.CHAN_LEN = 20;
 system.ingest('10101010001010101');
 system.shapeInput();
 
 target_launch = system.currentVals;
 target_envelope = abs(target_launch);
 
-max_iters = 10;
+max_iters = 1800;
 
 % Arbitrary phase
 % pattern ϕ(t) should be generated and combined with the target
@@ -25,11 +25,28 @@ predistorted_launch = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope
 % impossible as the input always has to be real-valued -> as such, 100%
 % precise approximation is not possible
 
+prev = target_envelope;
+
+rmse_vec = zeros(1,max_iters);
+
 for k = 1:max_iters
     propagated = applyCD(predistorted_launch, system);
+    err = rmse(prev, abs(propagated));
+    fprintf(1, "Current rmse: %d\n", err);
+    rmse_vec(k) = err;
+    prev = abs(propagated);
     propagated = target_envelope .* exp(1j * angle(propagated));
     backpropagated = applyCDInverse(propagated, system);
     predistorted_launch = target_envelope .* exp(1j * angle(backpropagated));
+end
+
+%Validate that the vector contains non-increasing rmse values
+isDecreasing = all(diff(rmse_vec) <= 0);
+
+if isDecreasing
+    fprintf(1, "RMSE vector consists of strictly non-increasing values\n");
+else
+    fprintf(1, "RMSE vector contains increasing values!\n");
 end
 
 baseline_out = applyCD(target_launch, system);

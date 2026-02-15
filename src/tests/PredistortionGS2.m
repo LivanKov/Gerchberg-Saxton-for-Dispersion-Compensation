@@ -2,14 +2,14 @@ clc; close all;
 
 system = System;
 system.pulseShape = Pulse.SINC;
-system.CHAN_LEN = 30;
+system.CHAN_LEN = 20;
 system.ingest('10101010001010101');
 system.shapeInput();
 
 target_launch = system.currentVals;
 target_envelope = abs(target_launch);
 
-max_iters = 1500;
+max_iters = 100;
 
 % Receiver-side initialization:
 % A(t) with arbitrary phase.
@@ -21,11 +21,28 @@ receiver_side = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
 % 2) transmitter constraint: keep amplitude B(t), set phase to 0
 % 3) transmitter -> receiver using CDTF
 % 4) receiver constraint: enforce target amplitude A(t), keep phase
+prev = target_envelope;
+
+rmse_vec = zeros(1,max_iters);
+
 for k = 1:max_iters
     backpropagated = applyCDInverse(receiver_side, system);
     backpropagated = abs(backpropagated) .* exp(1j * 0);
     propagated = applyCD(backpropagated, system);
     receiver_side = target_envelope .* exp(1j * angle(propagated));
+    err = rmse(prev, abs(backpropagated));
+    fprintf(1, "Current rmse: %d\n", err);
+    rmse_vec(k) = err;
+    prev = abs(backpropagated);
+end
+
+%Validate that the vector contains non-increasing rmse values
+isDecreasing = all(diff(rmse_vec) <= 0);
+
+if isDecreasing
+    fprintf(1, "RMSE vector consists of strictly non-increasing values\n");
+else
+    fprintf(1, "RMSE vector contains increasing values!\n");
 end
 
 baseline_out = applyCD(target_launch, system);

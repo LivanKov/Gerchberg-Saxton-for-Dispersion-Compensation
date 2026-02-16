@@ -1,7 +1,7 @@
 clc; close all;
 
 system = System;
-system.pulseShape = Pulse.RCOS;
+system.pulseShape = Pulse.SINC;
 system.CHAN_LEN = 30;
 system.ingest('10101010001010101');
 system.shapeInput();
@@ -13,7 +13,7 @@ system.applyChromaticDispersion();
 sq_baseline = abs(system.currentVals).^2;
 system.resetCD();
 % predistort using basic GS
-ModifiedGS(system, 1, 0, 150);
+ModifiedGS(system, 0, 1, 150);
 system.applyChromaticDispersion();
 sq_predistorted = abs(system.currentVals).^2;
 

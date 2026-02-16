@@ -1,6 +1,6 @@
 system = System;
 system.pulseShape = Pulse.SINC;
-system.CHAN_LEN = 20;
+system.CHAN_LEN = 30;
 system.ingest('10101010001010101');
 system.shapeInput();
 

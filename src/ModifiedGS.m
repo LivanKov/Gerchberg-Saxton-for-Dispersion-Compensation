@@ -14,7 +14,8 @@ function ModifiedGS(system, mode, convergenceMode, iterations)
         fprintf(1, "Running phase-only predistortion custom GS\n");
         system.currentVals = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
         if convergenceMode == 1
-            fprintf(1, "Convergence Mode: Fixed iterations\n. Using %d iterations\n", iterations);
+            fprintf(1, "Convergence Mode: Fixed iterations\n.");
+            fprintf(1, "Using %d iterations\n", iterations);
             % Fixed number of iterations
             for k = 1:iterations
                 system.applyChromaticDispersion();
@@ -24,10 +25,11 @@ function ModifiedGS(system, mode, convergenceMode, iterations)
             end
 
         elseif convergenceMode == 0
+            fprintf(1, "Convergence Mode: RMSE\n");
             err = inf;
             k = 1;
             prev = target_envelope;
-            fprintf(1, "Convergence Mode: RMSE\n");
+
             while err > mseTolerance && k <= maxIterations
                 system.applyChromaticDispersion();
                 err = rmse(prev, abs(system.currentVals));
@@ -67,7 +69,7 @@ function ModifiedGS(system, mode, convergenceMode, iterations)
             system.currentVals = ab;
 
         elseif convergenceMode == 0
-            fprintf(1, "Convergence Mode: RMSE");
+            fprintf(1, "Convergence Mode: RMSE\n");
             err = inf;
             k = 1;
             prev = target_envelope;
@@ -75,10 +77,10 @@ function ModifiedGS(system, mode, convergenceMode, iterations)
             while err > mseTolerance && k <= maxIterations
                 [ab, ~] = system.applyChromaticDispersionInv();
                 system.currentVals = ab .* exp(1j * 0);
+                err = rmse(prev, abs(system.currentVals));  % RMSE on backpropagated amplitude
+                prev = abs(system.currentVals);             % Track transmitter side amplitude
                 system.applyChromaticDispersion();
                 system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
-                err = rmse(prev, abs(system.currentVals));
-                prev = abs(system.currentVals);
                 k = k + 1;
             end
 

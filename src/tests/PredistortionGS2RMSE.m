@@ -2,7 +2,7 @@ clc; close all;
 
 system = System;
 system.pulseShape = Pulse.SINC;
-system.CHAN_LEN = 20;
+system.CHAN_LEN = 30;
 system.ingest('10101010001010101');
 system.shapeInput();
 
@@ -24,26 +24,24 @@ receiver_side = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
 prev = target_envelope;
 
 rmse_vec = zeros(1,max_iters);
-
 err = inf;
+k = 1;
 
-for k = 1:max_iters
+while err > 10e-10
     backpropagated = applyCDInverse(receiver_side, system);
     backpropagated = abs(backpropagated) .* exp(1j * 0);
     propagated = applyCD(backpropagated, system);
     receiver_side = target_envelope .* exp(1j * angle(propagated));
     err = rmse(prev, abs(backpropagated));
-    fprintf(1, "Current rmse: %d\n", err);
     rmse_vec(k) = err;
     prev = abs(backpropagated);
+    k = k + 1;
 end
+
+fprintf(1, "Algorithm has converged. Amount of iterations: %d\n",k);
 
 %Validate that the vector contains non-increasing rmse values
 isDecreasing = all(diff(rmse_vec) <= 0);
-
-
-% rmse limited approach
-
 
 
 if isDecreasing

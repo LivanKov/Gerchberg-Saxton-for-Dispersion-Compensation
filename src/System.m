@@ -156,22 +156,21 @@ classdef System < handle
         function [ab, comp] = applyChromaticDispersion(this)
             D = 17;
             beta2 = -(this.LAMBDA^2 / (2*pi*this.LIGHT)) * (D * 1e-3);
-            N = length(this.duplicatedVals);
-            U0 = fftshift(fft(this.duplicatedVals));
+            N = length(this.currentVals);
+            U0 = fftshift(fft(this.currentVals));
             f = (-((N-1)/2):(N/2)) * this.FS/N * 2*pi;
             H = exp(1i * (beta2/2) * f.^2 * this.CHAN_LEN); 
             U_out = U0 .* H;
             comp = ifft(ifftshift(U_out));
             ab = abs(comp);
-            this.currentVals = ab;
-            this.duplicatedVals = this.currentVals;
+            this.currentVals = comp;
         end
 
         function [ab, comp] = applyChromaticDispersionInv(this)
             D = 17;
             beta2 = -(this.LAMBDA^2 / (2*pi*this.LIGHT)) * (D * 1e-3);
-            N = length(this.duplicatedVals);
-            U0 = fftshift(fft(this.duplicatedVals));
+            N = length(this.currentVals);
+            U0 = fftshift(fft(this.currentVals));
             f = (-((N-1)/2):(N/2)) * this.FS/N * 2*pi;
             H_inv = exp(-1i * (beta2/2) * f.^2 * this.CHAN_LEN);
             U_out = U0 .* H_inv;
@@ -182,7 +181,6 @@ classdef System < handle
 
         function applySquareLaw(this)
             this.currentVals = (abs(this.currentVals)) .^ 2;
-            this.duplicatedVals = this.currentVals;
         end
 
         function [ber, sampledValues] = sampleInput(this)
@@ -302,6 +300,10 @@ classdef System < handle
             results.snr_db = snr_db;
             results.lowpass_percentage = lowpass_percentage;
             results.filter_applied = use_filter;
+        end
+
+        function resetCD(this)
+            this.currentVals = this.duplicatedVals;
         end
     end
 end

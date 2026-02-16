@@ -17,7 +17,7 @@ classdef Pulse
                 case Pulse.COS_SQR
                     pulse = Pulse.CosSqr(input, 1, System.SAMPLING_INTERVAL);
                 case Pulse.RCOS
-                    pulse = Pulse.RCos(input/(System.SAMPLING_INTERVAL/2), System.alpha);
+                    pulse = Pulse.RCos(input/(System.SAMPLING_INTERVAL), System.alpha);
                 case Pulse.RRCOS
                     pulse = Pulse.RRCos(input/(System.SAMPLING_INTERVAL/2), System.alpha);
                 case Pulse.SINC

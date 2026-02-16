@@ -1,88 +1,100 @@
-function out = ModifiedGS(system, mode, convergenceMode, iterations)
-    target_launch = system.currentVals;
-    target_envelope = abs(target_launch);
-    mseTolerance = 1e-10;
-    maxIterations = 1000;
+function ModifiedGS(system, mode, convergenceMode, iterations)
+    target_envelope = abs(system.currentVals);
+    mseTolerance = 10e-10;
+    maxIterations = 10000;
+
+    % Convergence mode: 
+    % 1 -> Fixed number of iterations
+    % 0 -> Run until a specific rmse is reached
 
 
     % Phase-only predistortion mode
     % Corresponds to the method in PredistortionGS.m
     if mode == 1
-        % Phase-only predistortion
-        predistorted_launch = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
-
+        fprintf(1, "Running phase-only predistortion custom GS\n");
+        system.currentVals = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
         if convergenceMode == 1
+            fprintf(1, "Convergence Mode: Fixed iterations\n. Using %d iterations\n", iterations);
             % Fixed number of iterations
             for k = 1:iterations
-                propagated = applyCD(predistorted_launch, system);
-                propagated = target_envelope .* exp(1j * angle(propagated));
-                backpropagated = applyCDInverse(propagated, system);
-                predistorted_launch = target_envelope .* exp(1j * angle(backpropagated));
+                system.applyChromaticDispersion();
+                system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
+                [~, comp] = system.applyChromaticDispersionInv();
+                system.currentVals = target_envelope .* exp(1j * angle(comp));
             end
 
         elseif convergenceMode == 0
-            % MSE-based convergence
-            prevMSE = inf;
-            k = 0;
-            while k < maxIterations
+            err = inf;
+            k = 1;
+            prev = target_envelope;
+            fprintf(1, "Convergence Mode: RMSE\n");
+            while err > mseTolerance && k <= maxIterations
+                system.applyChromaticDispersion();
+                err = rmse(prev, abs(system.currentVals));
+                prev = abs(system.currentVals);
+                system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
+                [~, comp] = system.applyChromaticDispersionInv();
+                system.currentVals = target_envelope .* exp(1j * angle(comp));
                 k = k + 1;
-                propagated = applyCD(predistorted_launch, system);
-                propagated = target_envelope .* exp(1j * angle(propagated));
-                backpropagated = applyCDInverse(propagated, system);
-                predistorted_launch = target_envelope .* exp(1j * angle(backpropagated));
+            end
 
-                currentMSE = mean(abs(target_envelope - abs(propagated)).^2);
-                if prevMSE - currentMSE < mseTolerance
-                    fprintf("Phase-only predistortion converged after %d iterations (MSE: %.6e)\n", k, currentMSE);
-                    break;
-                end
-                prevMSE = currentMSE;
+            fprintf(1, "Iterations completed:%d\n", k);
+
+            if k > maxIterations
+                fprintf(2, "Warning: Phase-only predistortion did not converge within %d iterations (MSE: %.6e)\n", maxIterations, err);
             end
-            if k == maxIterations
-                fprintf(2, "Warning: Phase-only predistortion did not converge within %d iterations (MSE: %.6e)\n", maxIterations, currentMSE);
-            end
+        else 
+            fprintf(2, "Unknown convergence mode! Supported Modes:\n1: Fixed iteration count\n0: Conversion via RMSE\n");
+            return;
         end
-
-        out = predistorted_launch;
 
     elseif mode == 0
         % Amplitude-only predistortion
         % Corresponds to the method in PredistortionGS2.m
-        receiver_side = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));;
+        fprintf(1, "Running amplitude-only predistortion custom GS\n");
+        system.currentVals = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
 
         if convergenceMode == 1
-            % Fixed number of iterations
+            fprintf(1, "Convergence Mode: Fixed iterations.\n Using %d iterations", iterations);
             for k = 1:iterations
-                backpropagated = applyCDInverse(receiver_side, system);
-                backpropagated = abs(backpropagated) .* exp(1j * 0);
-                propagated = applyCD(backpropagated, system);
-                receiver_side = target_envelope .* exp(1j * angle(propagated));
+                [ab, ~] = system.applyChromaticDispersionInv();
+                system.currentVals = ab .* exp(1j * 0);
+                system.applyChromaticDispersion();
+                system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
             end
+
+            [ab, ~] = system.applyChromaticDispersionInv();
+            system.currentVals = ab;
 
         elseif convergenceMode == 0
-            % MSE-based convergence
-            prevMSE = inf;
-            k = 0;
-            while k < maxIterations
-                k = k + 1;
-                backpropagated = applyCDInverse(receiver_side, system);
-                backpropagated = abs(backpropagated) .* exp(1j * 0);
-                propagated = applyCD(backpropagated, system);
-                receiver_side = target_envelope .* exp(1j * angle(propagated));
+            fprintf(1, "Convergence Mode: RMSE");
+            err = inf;
+            k = 1;
+            prev = target_envelope;
 
-                currentMSE = mean(abs(target_envelope - abs(propagated)).^2);
-                if prevMSE - currentMSE < mseTolerance
-                    fprintf("Amplitude-only predistortion converged after %d iterations (MSE: %.6e)\n", k, currentMSE);
-                    break;
-                end
-                prevMSE = currentMSE;
+            while err > mseTolerance && k <= maxIterations
+                [ab, ~] = system.applyChromaticDispersionInv();
+                system.currentVals = ab .* exp(1j * 0);
+                system.applyChromaticDispersion();
+                system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
+                err = rmse(prev, abs(system.currentVals));
+                prev = abs(system.currentVals);
+                k = k + 1;
             end
+
+            fprintf(1, "Iterations completed:%d\n", k);
+
+            [ab, ~] = system.applyChromaticDispersionInv();
+            system.currentVals = ab;
+
             if k == maxIterations
                 fprintf(2, "Warning: Amplitude-only predistortion did not converge within %d iterations (MSE: %.6e)\n", maxIterations, currentMSE);
             end
-        end
 
-        out = abs(backpropagated);
+        else
+            fprintf(2, "Unknown convergence mode! Supported Modes:\n1: Fixed iteration count\n0: Conversion via RMSE\n");
+            return;
+        end
 
     else 
         fprintf(2, "Unknown mode! Supported Modes:\n1: Phase only predistortion.\n0: Amplitude only predistortion\n");

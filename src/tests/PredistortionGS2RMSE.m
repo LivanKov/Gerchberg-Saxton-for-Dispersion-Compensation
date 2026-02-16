@@ -1,5 +1,3 @@
-clc; close all;
-
 system = System;
 system.pulseShape = Pulse.SINC;
 system.CHAN_LEN = 30;

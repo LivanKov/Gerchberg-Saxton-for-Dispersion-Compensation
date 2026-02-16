@@ -1,5 +1,3 @@
-clc; close all;
-
 system = System;
 system.pulseShape = Pulse.SINC;
 system.CHAN_LEN = 30;
@@ -9,7 +7,7 @@ system.shapeInput();
 target_launch = system.currentVals;
 target_envelope = abs(target_launch);
 
-max_iters = 1800;
+max_iters = 10000;
 
 % Arbitrary phase
 % pattern ϕ(t) should be generated and combined with the target

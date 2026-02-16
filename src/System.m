@@ -17,6 +17,7 @@ classdef System < handle
         input
         Output
         currentVals; % current values output by the filter etc.
+        %important for noise application and filter derivation
         shapedVals;
         diracVals;
         duplicatedVals;

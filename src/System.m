@@ -133,6 +133,8 @@ classdef System < handle
             end
             plot(this.t_vec, this.currentVals);
             xlim([0, this.t_vec(end)]);
+            grid on;
+            
         end
 
         function scatterPlot(this)

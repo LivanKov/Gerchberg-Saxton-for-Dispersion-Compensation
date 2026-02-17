@@ -1,13 +1,13 @@
 system = System;
 system.pulseShape = Pulse.SINC;
 system.CHAN_LEN = 30;
-system.ingest('10101010001010101');
+system.generateRandomInput(1000);
 system.shapeInput();
 
 target_launch = system.currentVals;
 target_envelope = abs(target_launch);
 
-max_iters = 150;
+max_iters = 500;
 
 % Receiver-side initialization:
 % A(t) with arbitrary phase.
@@ -78,6 +78,14 @@ legend('Target |x(t)|^2', 'After CD + PD (no predistortion)', ...
 title('Square-law output comparison (photodiode)');
 xlabel('Time (s)');
 ylabel('|x(t)|^2');
+
+
+figure;
+scatter(system.t_vec(system.sample_indices), sq_baseline(system.sample_indices));
+title("Baseline");
+figure;
+scatter(system.t_vec(system.sample_indices), sq_predistorted(system.sample_indices));
+title("Predistorted");
 
 function out = applyCD(signal, system)
     D = 17;

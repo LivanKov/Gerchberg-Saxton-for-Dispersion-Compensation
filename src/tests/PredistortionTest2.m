@@ -1,9 +1,9 @@
 clc; close all;
 
 system = System;
-system.pulseShape = Pulse.SINC;
-system.CHAN_LEN = 30;
-system.ingest('10101010001010101');
+system.pulseShape = Pulse.RCOS;
+system.CHAN_LEN = 20;
+system.generateRandomInput(5000);
 system.shapeInput();
 
 target_envelope = abs(system.currentVals);
@@ -27,3 +27,13 @@ legend('Target |x(t)|^2', 'After CD + PD (no predistortion)', ...
 title('Square-law output comparison (photodiode) (Pre-Implemented)');
 xlabel('Time (s)');
 ylabel('|x(t)|^2');
+
+figure;
+system.applySquareLaw();
+system.scatterPlot();
+system.resetCD();
+
+system.applyChromaticDispersion();
+system.applySquareLaw();
+figure;
+system.scatterPlot();

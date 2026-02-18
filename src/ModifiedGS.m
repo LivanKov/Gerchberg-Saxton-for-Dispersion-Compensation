@@ -1,4 +1,4 @@
-function ModifiedGS(system, mode, convergenceMode, iterations)
+function ModifiedGS(system, mode, convergenceMode, iterations, verbose)
     target_envelope = abs(system.currentVals);
     mseTolerance = 10e-10;
     maxIterations = 10000;
@@ -13,22 +13,27 @@ function ModifiedGS(system, mode, convergenceMode, iterations)
     if mode == 1
         fprintf(1, "Running phase-only predistortion custom GS\n");
         system.currentVals = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
+        prev = target_envelope;
         if convergenceMode == 1
-            fprintf(1, "Convergence Mode: Fixed iterations\n.");
+            fprintf(1, "Convergence Mode: Fixed iterations.\n");
             fprintf(1, "Using %d iterations\n", iterations);
-            % Fixed number of iterations
+
             for k = 1:iterations
-                system.applyChromaticDispersion();
+                system.applyChromaticDispersion();                                
+                err = rmse(prev, abs(system.currentVals));
+                prev = abs(system.currentVals);
                 system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
                 [~, comp] = system.applyChromaticDispersionInv();
                 system.currentVals = target_envelope .* exp(1j * angle(comp));
+                if verbose == 1
+                    fprintf(1, "Current error: %d\n", err);
+                end
             end
 
         elseif convergenceMode == 0
             fprintf(1, "Convergence Mode: RMSE\n");
             err = inf;
             k = 1;
-            prev = target_envelope;
 
             while err > mseTolerance && k <= maxIterations
                 system.applyChromaticDispersion();
@@ -38,6 +43,9 @@ function ModifiedGS(system, mode, convergenceMode, iterations)
                 [~, comp] = system.applyChromaticDispersionInv();
                 system.currentVals = target_envelope .* exp(1j * angle(comp));
                 k = k + 1;
+                if verbose == 1
+                    fprintf(1, "Current error: %d\n", err);
+                end
             end
 
             fprintf(1, "Iterations completed:%d\n", k);
@@ -55,18 +63,24 @@ function ModifiedGS(system, mode, convergenceMode, iterations)
         % Corresponds to the method in PredistortionGS2.m
         fprintf(1, "Running amplitude-only predistortion custom GS\n");
         system.currentVals = target_envelope .* exp(1j * 2*pi*rand(size(target_envelope)));
+        prev = target_envelope;
 
         if convergenceMode == 1
             fprintf(1, "Convergence Mode: Fixed iterations.\n Using %d iterations", iterations);
             for k = 1:iterations
                 [ab, ~] = system.applyChromaticDispersionInv();
                 system.currentVals = ab .* exp(1j * 0);
+                copy = system.currentVals;
+                err = rmse(prev, abs(system.currentVals));
+                prev = abs(system.currentVals);
                 system.applyChromaticDispersion();
                 system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
+                if verbose == 1
+                    fprintf(1, "Current error: %d\n", err);
+                end
             end
 
-            [ab, ~] = system.applyChromaticDispersionInv();
-            system.currentVals = ab;
+            system.currentVals = copy;
 
         elseif convergenceMode == 0
             fprintf(1, "Convergence Mode: RMSE\n");
@@ -77,11 +91,14 @@ function ModifiedGS(system, mode, convergenceMode, iterations)
             while err > mseTolerance && k <= maxIterations
                 [ab, ~] = system.applyChromaticDispersionInv();
                 system.currentVals = ab .* exp(1j * 0);
-                err = rmse(prev, abs(system.currentVals));  % RMSE on backpropagated amplitude
-                prev = abs(system.currentVals);             % Track transmitter side amplitude
+                err = rmse(prev, abs(system.currentVals));
+                prev = abs(system.currentVals);            
                 system.applyChromaticDispersion();
                 system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
                 k = k + 1;
+                if verbose == 1
+                    fprintf(1, "Current error: %d\n", err);
+                end
             end
 
             fprintf(1, "Iterations completed:%d\n", k);

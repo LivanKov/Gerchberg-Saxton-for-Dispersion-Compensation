@@ -1,7 +1,21 @@
-function ModifiedGS(system, mode, convergenceMode, iterations, verbose)
+function ModifiedGS(system, varargin)
+    p = inputParser;
+    addParameter(p, 'mode', 1, @isnumeric);  % 1: phase-only, 0: amplitude-only
+    addParameter(p, 'convergenceMode', 1, @isnumeric);  % 1: fixed iterations, 0: RMSE
+    addParameter(p, 'iterations', 100, @isnumeric);
+    addParameter(p, 'verbose', false, @islogical);
+    addParameter(p, 'mseTolerance', 10e-10, @isnumeric);
+    addParameter(p, 'maxIterations', 10000, @isnumeric);
+    parse(p, varargin{:});
+
+    mode = p.Results.mode;
+    convergenceMode = p.Results.convergenceMode;
+    iterations = p.Results.iterations;
+    verbose = p.Results.verbose;
+    mseTolerance = p.Results.mseTolerance;
+    maxIterations = p.Results.maxIterations;
+
     target_envelope = abs(system.currentVals);
-    mseTolerance = 10e-10;
-    maxIterations = 10000;
 
     % Convergence mode: 
     % 1 -> Fixed number of iterations
@@ -25,7 +39,7 @@ function ModifiedGS(system, mode, convergenceMode, iterations, verbose)
                 system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
                 [~, comp] = system.applyChromaticDispersionInv();
                 system.currentVals = target_envelope .* exp(1j * angle(comp));
-                if verbose == 1
+                if verbose
                     fprintf(1, "Current error: %d\n", err);
                 end
             end
@@ -43,7 +57,7 @@ function ModifiedGS(system, mode, convergenceMode, iterations, verbose)
                 [~, comp] = system.applyChromaticDispersionInv();
                 system.currentVals = target_envelope .* exp(1j * angle(comp));
                 k = k + 1;
-                if verbose == 1
+                if verbose
                     fprintf(1, "Current error: %d\n", err);
                 end
             end
@@ -75,7 +89,7 @@ function ModifiedGS(system, mode, convergenceMode, iterations, verbose)
                 prev = abs(system.currentVals);
                 system.applyChromaticDispersion();
                 system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
-                if verbose == 1
+                if verbose
                     fprintf(1, "Current error: %d\n", err);
                 end
             end
@@ -96,7 +110,7 @@ function ModifiedGS(system, mode, convergenceMode, iterations, verbose)
                 system.applyChromaticDispersion();
                 system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
                 k = k + 1;
-                if verbose == 1
+                if verbose
                     fprintf(1, "Current error: %d\n", err);
                 end
             end

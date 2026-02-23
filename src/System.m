@@ -119,7 +119,7 @@ classdef System < handle
         function addNoise(this, a)
             this.noisePower = a;
             noise = randn(1, length(this.currentVals)) * sqrt(a);
-            this.currentVals = this.duplicatedVals + noise;
+            this.currentVals = this.currentVals + noise;
         end
 
         function removeNoise(this)
@@ -202,6 +202,11 @@ classdef System < handle
             addParameter(p, 'pulseShape', Pulse.SINC);
             addParameter(p, 'useLowpassFilter', true, @islogical);
             addParameter(p, 'enableOpticalChannel', false, @islogical);
+            addParameter(p, 'applyPredistortion', false, @islogical);
+            addParameter(p, 'applyChromaticDispersion', false, @islogical);
+            addParameter(p, 'applySquareLaw', false, @islogical);
+            addParameter(p, 'predistortionMode', 1, @isnumeric);
+            addParameter(p, 'predistortionIterations', 100, @isnumeric);
             parse(p, varargin{:});
             
             len = p.Results.length;
@@ -209,6 +214,11 @@ classdef System < handle
             pulse = p.Results.pulseShape;
             use_filter = p.Results.useLowpassFilter;
             enable_optical_channel = p.Results.enableOpticalChannel;
+            apply_predistortion = p.Results.applyPredistortion;
+            apply_cd = p.Results.applyChromaticDispersion || enable_optical_channel;
+            apply_sqr_law = p.Results.applySquareLaw || enable_optical_channel;
+            predistortion_mode = p.Results.predistortionMode;
+            predistortion_iterations = p.Results.predistortionIterations;
             
             temp_input = Input;
             temp_input.generateRandomBin(len);
@@ -230,7 +240,9 @@ classdef System < handle
                 fprintf(1,"\n");
                 result = this.runTest('inputStream', test_stream, 'noiseVariance', required_noise, ...
                     'lowpassPercentage', lowpass_percentage, 'pulseShape', pulse, ...
-                    'useLowpassFilter', use_filter, 'enableOpticalChannel', enable_optical_channel);
+                    'useLowpassFilter', use_filter, 'applyPredistortion', apply_predistortion, ...
+                    'applyChromaticDispersion', apply_cd, 'applySquareLaw', apply_sqr_law, ...
+                    'predistortionMode', predistortion_mode, 'predistortionIterations', predistortion_iterations);
                 y(i) = result.ber/100;
             end
             this.clear();
@@ -263,6 +275,11 @@ classdef System < handle
             addParameter(p, 'noiseVariance', 0.5, @isnumeric);
             addParameter(p, 'useLowpassFilter', true, @islogical);
             addParameter(p, 'enableOpticalChannel', false, @islogical);
+            addParameter(p, 'applyPredistortion', false, @islogical);
+            addParameter(p, 'applyChromaticDispersion', false, @islogical);
+            addParameter(p, 'applySquareLaw', false, @islogical);
+            addParameter(p, 'predistortionMode', 1, @isnumeric);
+            addParameter(p, 'predistortionIterations', 100, @isnumeric);
             parse(p, varargin{:});
             
             input_stream = p.Results.inputStream;
@@ -272,6 +289,11 @@ classdef System < handle
             noise_var = p.Results.noiseVariance;
             use_filter = p.Results.useLowpassFilter;
             enable_optical_channel = p.Results.enableOpticalChannel;
+            apply_predistortion = p.Results.applyPredistortion;
+            apply_cd = p.Results.applyChromaticDispersion || enable_optical_channel;
+            apply_sqr_law = p.Results.applySquareLaw || enable_optical_channel;
+            predistortion_mode = p.Results.predistortionMode;
+            predistortion_iterations = p.Results.predistortionIterations;
             this.pulseShape = pulse;
             
             this.outputFilter.areaCovered = lowpass_percentage;
@@ -281,9 +303,16 @@ classdef System < handle
                 this.ingest(input_stream);
             end
             this.shapeInput();
-            if enable_optical_channel
+            if apply_predistortion
+                disp("Applying Predistortion via ModifiedGS");
+                ModifiedGS(this, 'mode', predistortion_mode, 'iterations', predistortion_iterations);
+            end
+            if apply_cd
                 disp("Applying Chromatic Dispersion");
                 this.applyChromaticDispersion();
+            end
+            if apply_sqr_law
+                disp("Applying Square Law Detection");
                 this.applySquareLaw();
             end
             this.addNoise(noise_var);

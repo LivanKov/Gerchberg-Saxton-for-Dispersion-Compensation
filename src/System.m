@@ -31,7 +31,7 @@ classdef System < handle
         alpha
 
 
-        SAMPLING_INTERVAL = 33e-12; % length of a single pulse
+        SAMPLING_INTERVAL = 50e-12; % length of a single pulse
         SAMP_TIME = 200e-12;
         FS = 3000e9;
         CHAN_LEN = 20;

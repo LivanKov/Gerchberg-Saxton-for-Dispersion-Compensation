@@ -23,12 +23,15 @@ H = exp(1i * (beta2/2) * omega.^2 * L);
 U_out = U0 .* H;
 sig_out = ifft(ifftshift(U_out));
 
-plot(t, sig); hold on;
-plot(t, sig_out); hold on;
-plot(t, abs(sig_out));
+T = system.SAMPLING_INTERVAL;
+t_normalized = t / T;
 
-title("Effects of Chromatic Dispersion on a singular SINC Impulse");
-legend("Pulse", "Pulse affected by CD", "Abs()^2 of a pulse affected by CD", 'Location', 'northeast');
+plot(t_normalized, sig); hold on
+plot(t_normalized, abs(sig_out));
+
+title("Effects of Chromatic Dispersion on a single SINC Impulse");
+xlabel('t/T');
+legend("Pulse","Abs()^2 of a pulse affected by CD", 'Location', 'northeast');
 
 grid on;
 

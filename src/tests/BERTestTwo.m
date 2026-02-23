@@ -3,11 +3,13 @@
 clc; clear all;
 
 s = System;
+s.SAMPLING_INTERVAL = 33e-12;
+s.FS = 1000e9;
 s.TEST_LEN = 20000;
 [x, y] = s.runBERTest('useLowpassFilter', false, 'pulseShape', Pulse.COS_SQR);
 plot(x, y, '-s');
 hold on;
-[x_f, y_f] = s.runBERTest('useLowpassFilter', true, 'pulseShape', Pulse.COS_SQR);
+[x_f, y_f] = s.runBERTest('useLowpassFilter', true, 'pulseShape', Pulse.COS_SQR, 'lowpassPercentage', 97);
 plot(x_f, y_f, '-s');
 title('BER/SNR Comparison: No filter vs filter enabled. SINC Impulse over 400000 samples');
 ylabel('BER - log10(Pb)');

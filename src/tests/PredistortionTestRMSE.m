@@ -11,7 +11,7 @@ system.applyChromaticDispersion();
 sq_baseline = abs(system.currentVals).^2;
 system.resetCD();
 % predistort using basic GS
-ModifiedGS(system, 1, 0, 150);
+ModifiedGS(system, 'mode', 1, 'convergenceMode', 0, 'iterations', 150);
 system.applyChromaticDispersion();
 sq_predistorted = abs(system.currentVals).^2;
 

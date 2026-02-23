@@ -1,10 +1,13 @@
 % Compare the BER in system without a lowpass filter with a system with
 % lowpass in place
+clc; clear all;
+
 s = System;
-[x, y] = s.runBERTest('useLowpassFilter', false, 'pulseShape', Pulse.GAUS);
+s.TEST_LEN = 20000;
+[x, y] = s.runBERTest('useLowpassFilter', false, 'pulseShape', Pulse.COS_SQR);
 plot(x, y, '-s');
 hold on;
-[x_f, y_f] = s.runBERTest('useLowpassFilter', true, 'pulseShape', Pulse.GAUS);
+[x_f, y_f] = s.runBERTest('useLowpassFilter', true, 'pulseShape', Pulse.COS_SQR);
 plot(x_f, y_f, '-s');
 title('BER/SNR Comparison: No filter vs filter enabled. SINC Impulse over 400000 samples');
 ylabel('BER - log10(Pb)');

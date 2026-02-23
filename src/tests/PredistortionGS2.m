@@ -7,7 +7,7 @@ system.shapeInput();
 target_launch = system.currentVals;
 target_envelope = abs(target_launch);
 
-max_iters = 2000;
+max_iters = 100;
 
 % Receiver-side initialization:
 % A(t) with arbitrary phase.

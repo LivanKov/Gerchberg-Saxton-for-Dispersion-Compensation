@@ -1,6 +1,8 @@
 % Compare how different lowpass filter area percentages affect BER performance
 s = System;
-n_samples = 100000;
+n_samples = 20000;
+clc; 
+close all;
 
 [x_1, y_1] = s.runBERTest('useLowpassFilter', true, 'length', n_samples, 'lowpassPercentage', 50, 'pulseShape', Pulse.COS_SQR);
 plot(x_1, y_1, '-s');

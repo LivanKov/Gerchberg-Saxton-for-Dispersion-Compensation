@@ -1,7 +1,7 @@
 s = System;
 num_samples = 10000;
 s.generateRandomInput(num_samples);
-s.pulseShape = Pulse.SINC;
+s.pulseShape = Pulse.COS_SQR;
 s.shapeInput();
 s.CHAN_LEN = 30;
 
@@ -22,7 +22,7 @@ else
 end
 
 figure;
-ModifiedGS(s, mode, 1, 400, 1);
+ModifiedGS(s, 'mode', mode, 'convergenceMode', 1, 'iterations', 400, 'verbose', true);
 s.applyChromaticDispersion();
 s.applySquareLaw();
 s.scatterPlot(); grid on;

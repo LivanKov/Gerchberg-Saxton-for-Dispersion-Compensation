@@ -1,7 +1,7 @@
 % Compare different channel lengths when affected by chromatic dispersion
 s = System;
 n_samples = 10000;
-s.CHAN_LEN = 40;
+s.CHAN_LEN = 20;
 
 [x_1, y_1] = s.runBERTest('useLowpassFilter', false, 'length', n_samples, 'pulseShape', Pulse.SINC);
 plot(x_1, y_1, '-s');

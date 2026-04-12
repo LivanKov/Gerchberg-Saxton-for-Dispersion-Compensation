@@ -31,9 +31,9 @@ classdef System < handle
         alpha
 
 
-        SAMPLING_INTERVAL = 50e-12; % length of a single pulse
+        SAMPLING_INTERVAL = 33e-12; % length of a single pulse
         SAMP_TIME = 200e-12;
-        FS = 3000e9;
+        FS = 1000e9;
         CHAN_LEN = 20;
         LIGHT = 3e8;    
         LAMBDA = 1550e-9; % Carrier wavelength, default value for an optical comms system  
@@ -205,8 +205,8 @@ classdef System < handle
             addParameter(p, 'applyPredistortion', false, @islogical);
             addParameter(p, 'applyChromaticDispersion', false, @islogical);
             addParameter(p, 'applySquareLaw', false, @islogical);
-            addParameter(p, 'predistortionMode', 1, @isnumeric);
-            addParameter(p, 'predistortionIterations', 100, @isnumeric);
+            addParameter(p, 'predistortionMode', 0, @isnumeric);
+            addParameter(p, 'predistortionIterations', 150, @isnumeric);
             parse(p, varargin{:});
             
             len = p.Results.length;
@@ -224,6 +224,20 @@ classdef System < handle
             temp_input.generateRandomBin(len);
             test_stream = temp_input.stream;
             
+            % Pre-compute shaped and optionally predistorted signal once
+            this.pulseShape = pulse;
+            this.outputFilter.areaCovered = lowpass_percentage;
+            this.ingest(test_stream);
+            this.shapeInput();
+            
+            if apply_predistortion
+                disp("Applying Predistortion via ModifiedGS (once, before BER loop)");
+                ModifiedGS(this, 'mode', predistortion_mode, 'iterations', predistortion_iterations);
+            end
+            
+            % Save the predistorted (or just shaped) signal as base
+            base_signal = this.currentVals;
+            
             x = -10:0.5:18;
             y = zeros(size(x));
             dt = 1/this.FS;
@@ -231,6 +245,10 @@ classdef System < handle
             pulse_waveform = Pulse.GeneratePulse(sym_time_vec, this);
             energy_per_symbol = trapz(sym_time_vec, abs(pulse_waveform).^2);
             for i = 1:length(x)
+                % Restore from saved base signal
+                this.currentVals = base_signal;
+                this.duplicatedVals = base_signal;
+                
                 snr_db = x(i);
                 snr_lin = 10^(snr_db/10);
                 required_noise = (energy_per_symbol / snr_lin) * (1/this.SAMPLING_INTERVAL);
@@ -238,12 +256,22 @@ classdef System < handle
                 disp("Required linear snr: " + snr_lin);
                 disp("SNR_DB: " + snr_db);
                 fprintf(1,"\n");
-                result = this.runTest('inputStream', test_stream, 'noiseVariance', required_noise, ...
-                    'lowpassPercentage', lowpass_percentage, 'pulseShape', pulse, ...
-                    'useLowpassFilter', use_filter, 'applyPredistortion', apply_predistortion, ...
-                    'applyChromaticDispersion', apply_cd, 'applySquareLaw', apply_sqr_law, ...
-                    'predistortionMode', predistortion_mode, 'predistortionIterations', predistortion_iterations);
-                y(i) = result.ber/100;
+                
+                % Apply channel effects
+                if apply_cd
+                    this.applyChromaticDispersion();
+                end
+                if apply_sqr_law
+                    this.applySquareLaw();
+                end
+                this.addNoise(required_noise);
+                
+                if use_filter
+                    this.applyOutputFilter();
+                end
+                
+                [ber, ~] = this.sampleInput();
+                y(i) = ber/100;
             end
             this.clear();
             y = log10(y);

@@ -6,6 +6,7 @@ function ModifiedGS(system, varargin)
     addParameter(p, 'verbose', false, @islogical);
     addParameter(p, 'mseTolerance', 10e-10, @isnumeric);
     addParameter(p, 'maxIterations', 10000, @isnumeric);
+    addParameter(p, 'plotRMSE', false, @islogical);
     parse(p, varargin{:});
 
     mode = p.Results.mode;
@@ -14,8 +15,10 @@ function ModifiedGS(system, varargin)
     verbose = p.Results.verbose;
     mseTolerance = p.Results.mseTolerance;
     maxIterations = p.Results.maxIterations;
+    plotRMSE = p.Results.plotRMSE;
 
     target_envelope = abs(system.currentVals);
+    rmse_history = [];
 
     % Convergence mode: 
     % 1 -> Fixed number of iterations
@@ -35,6 +38,7 @@ function ModifiedGS(system, varargin)
             for k = 1:iterations
                 system.applyChromaticDispersion();                                
                 err = rmse(prev, abs(system.currentVals));
+                rmse_history(end+1) = err;
                 prev = abs(system.currentVals);
                 system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
                 [~, comp] = system.applyChromaticDispersionInv();
@@ -42,6 +46,15 @@ function ModifiedGS(system, varargin)
                 if verbose
                     fprintf(1, "Current error: %d\n", err);
                 end
+            end
+
+            if plotRMSE
+                figure;
+                plot(1:iterations, rmse_history, '-o');
+                xlabel('Iteration');
+                ylabel('RMSE');
+                title('RMSE Convergence (Phase-only, Fixed Iterations)');
+                grid on;
             end
 
         elseif convergenceMode == 0
@@ -52,6 +65,7 @@ function ModifiedGS(system, varargin)
             while err > mseTolerance && k <= maxIterations
                 system.applyChromaticDispersion();
                 err = rmse(prev, abs(system.currentVals));
+                rmse_history(end+1) = err;
                 prev = abs(system.currentVals);
                 system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
                 [~, comp] = system.applyChromaticDispersionInv();
@@ -63,6 +77,15 @@ function ModifiedGS(system, varargin)
             end
 
             fprintf(1, "Iterations completed:%d\n", k);
+
+            if plotRMSE
+                figure;
+                plot(1:length(rmse_history), rmse_history, '-o');
+                xlabel('Iteration');
+                ylabel('RMSE');
+                title('RMSE Convergence (Phase-only, RMSE Mode)');
+                grid on;
+            end
 
             if k > maxIterations
                 fprintf(2, "Warning: Phase-only predistortion did not converge within %d iterations (MSE: %.6e)\n", maxIterations, err);
@@ -86,6 +109,7 @@ function ModifiedGS(system, varargin)
                 system.currentVals = ab .* exp(1j * 0);
                 copy = system.currentVals;
                 err = rmse(prev, abs(system.currentVals));
+                rmse_history(end+1) = err;
                 prev = abs(system.currentVals);
                 system.applyChromaticDispersion();
                 system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
@@ -95,6 +119,15 @@ function ModifiedGS(system, varargin)
             end
 
             system.currentVals = copy;
+
+            if plotRMSE
+                figure;
+                plot(1:iterations, rmse_history, '-o');
+                xlabel('Iteration');
+                ylabel('RMSE');
+                title('RMSE Convergence (Amplitude-only, Fixed Iterations)');
+                grid on;
+            end
 
         elseif convergenceMode == 0
             fprintf(1, "Convergence Mode: RMSE\n");
@@ -106,6 +139,7 @@ function ModifiedGS(system, varargin)
                 [ab, ~] = system.applyChromaticDispersionInv();
                 system.currentVals = ab .* exp(1j * 0);
                 err = rmse(prev, abs(system.currentVals));
+                rmse_history(end+1) = err;
                 prev = abs(system.currentVals);            
                 system.applyChromaticDispersion();
                 system.currentVals = target_envelope .* exp(1j * angle(system.currentVals));
@@ -119,6 +153,15 @@ function ModifiedGS(system, varargin)
 
             [ab, ~] = system.applyChromaticDispersionInv();
             system.currentVals = ab;
+
+            if plotRMSE
+                figure;
+                plot(1:length(rmse_history), rmse_history, '-o');
+                xlabel('Iteration');
+                ylabel('RMSE');
+                title('RMSE Convergence (Amplitude-only, RMSE Mode)');
+                grid on;
+            end
 
             if k == maxIterations
                 fprintf(2, "Warning: Amplitude-only predistortion did not converge within %d iterations (MSE: %.6e)\n", maxIterations, currentMSE);
